@@ -1,1 +1,0 @@
-{"version":3,"file":"messageHistoryController.d.ts","sourceRoot":"","sources":["../../../src/controllers/messageHistoryController.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAEnC,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,oBAAoB,CAAC;AAiCtD,eAAO,MAAM,iBAAiB,QAAe,WAAW,OAAO,QAAQ,gDAwBtE,CAAC;AAEF,eAAO,MAAM,WAAW,QAAe,WAAW,OAAO,QAAQ,gDA0BhE,CAAC"}

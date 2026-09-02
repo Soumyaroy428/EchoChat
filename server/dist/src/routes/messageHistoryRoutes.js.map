@@ -1,1 +1,0 @@
-{"version":3,"file":"messageHistoryRoutes.js","sourceRoot":"","sources":["../../../src/routes/messageHistoryRoutes.ts"],"names":[],"mappings":";;AAAA,qCAAiC;AACjC,sFAAyF;AACzF,6CAAkD;AAElD,MAAM,MAAM,GAAG,IAAA,gBAAM,GAAE,CAAC;AAExB,MAAM,CAAC,GAAG,CAAC,aAAa,EAAE,mBAAY,EAAE,4CAAiB,CAAC,CAAC;AAC3D,MAAM,CAAC,IAAI,CAAC,GAAG,EAAE,mBAAY,EAAE,sCAAW,CAAC,CAAC;kBAE7B,MAAM"}
