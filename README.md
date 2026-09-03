@@ -97,6 +97,24 @@ cd ../client
 npm run build
 ```
 
+## Deployment
+
+### Frontend (Vercel)
+
+The Next.js frontend can be deployed to Vercel:
+
+1. Push your code to GitHub
+2. Go to [vercel.com](https://vercel.com) and import your repository
+3. Vercel will auto-detect the Next.js configuration
+4. Add environment variable: `NEXT_PUBLIC_SOCKET_URL` (your backend URL)
+5. Deploy
+
+### Backend (Railway/Render/Fly.io)
+
+The backend uses Socket.IO for real-time messaging and requires a long-running server. Deploy to Railway, Render, or Fly.io instead of Vercel.
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+
 ## License
 
 This project is for learning and development purposes.
