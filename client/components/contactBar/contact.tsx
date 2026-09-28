@@ -11,6 +11,8 @@ type Contact = {
   avatar?: string;
   isOnline: boolean;
   lastSeen?: string;
+  lastMessage?: string;
+  unreadCount?: number;
 };
 
 type ContactBarProps = {
@@ -193,9 +195,16 @@ export default function ContactBar({
                         {contact.isOnline ? "Online" : "Offline"}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm text-gray-400 truncate">
-                      {contact.mobile}
-                    </p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="mt-1 text-sm text-gray-400 truncate">
+                        {contact.lastMessage || contact.mobile}
+                      </p>
+                      {!!contact.unreadCount && contact.unreadCount > 0 && (
+                        <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-blue-500 px-1.5 text-[10px] font-bold text-white">
+                          {contact.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 

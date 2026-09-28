@@ -131,12 +131,9 @@ export default function ChatBar({
     };
 
     chatSocket.on("message_received", handleMessage);
-    if (chatSocket.connected) chatSocket.disconnect();
-    chatSocket.connect();
 
     return () => {
       chatSocket.off("message_received", handleMessage);
-      chatSocket.disconnect();
     };
   }, [currentUser?.id, selectedContact?.id]);
 

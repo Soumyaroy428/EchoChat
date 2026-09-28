@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { socket } from "../../lib/socket";
 import Side from "../sidebar/side";
 import UserProfileEdit from "../sidebar/userProfileEdit";
 import ContactBar from "../contactBar/contact";
@@ -14,6 +15,8 @@ type Contact = {
   avatar?: string;
   isOnline: boolean;
   lastSeen?: string;
+  lastMessage?: string;
+  unreadCount?: number;
 };
 
 type UserProfile = {
@@ -56,6 +59,9 @@ export default function MainPage() {
 
     const fetchProfile = async () => {
       setLoading(true);
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
       try {
         const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -107,7 +113,52 @@ export default function MainPage() {
     };
 
     fetchProfile();
-  }, [token]);
+
+    // Socket Connection
+    socket.auth = { token };
+    socket.connect();
+
+    const handleMessage = (message: any) => {
+      setContacts((prevContacts) => {
+        const senderId = message.senderId === user?.id ? message.receiverId : message.senderId;
+        const existingContactIndex = prevContacts.findIndex(c => c.id === senderId);
+        
+        if (existingContactIndex === -1) return prevContacts; // If not in contacts, ignore or we could fetch it
+
+        const updatedContacts = [...prevContacts];
+        const contact = updatedContacts[existingContactIndex];
+        
+        // Remove contact from current position
+        updatedContacts.splice(existingContactIndex, 1);
+        
+        // Add to the top with updated info
+        const isSelected = contact.id === selectedContact?.id;
+        updatedContacts.unshift({
+          ...contact,
+          lastMessage: message.content,
+          unreadCount: isSelected ? 0 : (contact.unreadCount || 0) + 1,
+        });
+
+        if (!isSelected && message.senderId !== user?.id) {
+          if (Notification.permission === "granted") {
+            new Notification(`New message from ${contact.name}`, {
+              body: message.content,
+              icon: contact.avatar,
+            });
+          }
+        }
+
+        return updatedContacts;
+      });
+    };
+
+    socket.on("message_received", handleMessage);
+
+    return () => {
+      socket.off("message_received", handleMessage);
+      socket.disconnect();
+    };
+  }, [token, selectedContact, user?.id]);
 
   const filteredContacts = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -128,6 +179,9 @@ export default function MainPage() {
   const handleSelectContact = (contact: Contact) => {
     setSelectedContact(contact);
     setIsContactInfoOpen(false);
+    
+    // Reset unread count for this contact
+    setContacts(prev => prev.map(c => c.id === contact.id ? { ...c, unreadCount: 0 } : c));
   };
 
   const handleCreateContact = async (c: { name: string; mobile: string }) => {
