@@ -123,7 +123,27 @@ export default function MainPage() {
         const senderId = message.senderId === user?.id ? message.receiverId : message.senderId;
         const existingContactIndex = prevContacts.findIndex(c => c.id === senderId);
         
-        if (existingContactIndex === -1) return prevContacts; // If not in contacts, ignore or we could fetch it
+        if (existingContactIndex === -1) {
+          // If the sender is not in our contacts, add them dynamically
+          const isSelected = senderId === selectedContact?.id;
+          const newContact = {
+            id: senderId,
+            name: "Unknown Contact",
+            mobile: "Unknown",
+            isOnline: false,
+            lastMessage: message.content,
+            unreadCount: isSelected ? 0 : 1,
+          };
+
+          if (!isSelected && message.senderId !== user?.id) {
+            if (Notification.permission === "granted") {
+              new Notification(`New message`, {
+                body: message.content,
+              });
+            }
+          }
+          return [newContact, ...prevContacts];
+        }
 
         const updatedContacts = [...prevContacts];
         const contact = updatedContacts[existingContactIndex];
