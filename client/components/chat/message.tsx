@@ -109,10 +109,8 @@ export default function ChatBar({
       content: string;
       timestamp: string;
     }) => {
-      if (
-        !selectedContact ||
-        ![message.senderId, message.receiverId].includes(selectedContact.id)
-      ) {
+      const otherUserId = message.senderId === currentUser?.id ? message.receiverId : message.senderId;
+      if (!selectedContact || selectedContact.id !== otherUserId) {
         return;
       }
 

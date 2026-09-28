@@ -113,10 +113,16 @@ export default function MainPage() {
     };
 
     fetchProfile();
+  }, [token]);
 
-    // Socket Connection
+  // Socket Connection and Global Message Handler
+  useEffect(() => {
+    if (!token) return;
+    
     socket.auth = { token };
-    socket.connect();
+    if (!socket.connected) {
+      socket.connect();
+    }
 
     const handleMessage = (message: any) => {
       setContacts((prevContacts) => {
@@ -176,9 +182,9 @@ export default function MainPage() {
 
     return () => {
       socket.off("message_received", handleMessage);
-      socket.disconnect();
+      // We do not call socket.disconnect() here so it remains connected across re-renders!
     };
-  }, [token, selectedContact, user?.id]);
+  }, [token, selectedContact?.id, user?.id]);
 
   const filteredContacts = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
