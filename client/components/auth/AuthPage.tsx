@@ -39,7 +39,7 @@ export default function AuthPage() {
       const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
       
       // API call: Send authentication request to backend server
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -62,7 +62,7 @@ export default function AuthPage() {
         setShowOtpModal(true);
 
         try {
-          await fetch("http://localhost:5000/api/auth/sendOtp", {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/sendOtp`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ phonenumber: formData.mobile }),

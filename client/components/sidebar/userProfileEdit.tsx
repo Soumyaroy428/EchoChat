@@ -97,7 +97,7 @@ export default function UserProfileEdit({ user, onLogout, onAvatarChange, onProf
   const saveName = async () => {
     setIsSavingName(true);
     try {
-      const response = await fetch("http://localhost:5000/api/auth/profile/name", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/profile/name`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
         body: JSON.stringify({ name: draftName }),
@@ -124,7 +124,7 @@ export default function UserProfileEdit({ user, onLogout, onAvatarChange, onProf
   const saveAbout = async () => {
     setIsSavingAbout(true);
     try {
-      const response = await fetch("http://localhost:5000/api/auth/profile/about", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/profile/about`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
         body: JSON.stringify({ about: draftAbout, visibility: draftVisibility, expiresAt: draftExpiry ? new Date(draftExpiry).toISOString() : null }),
@@ -154,7 +154,7 @@ export default function UserProfileEdit({ user, onLogout, onAvatarChange, onProf
     try {
       const formData = new FormData();
       formData.append("avatar", file);
-      const response = await fetch("http://localhost:5000/api/auth/profile/avatar", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/profile/avatar`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
         body: formData,
@@ -215,7 +215,7 @@ export default function UserProfileEdit({ user, onLogout, onAvatarChange, onProf
     if (!user?.avatar || !window.confirm("Remove your profile photo?")) return;
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/profile/avatar", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/profile/avatar`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
       });

@@ -152,7 +152,7 @@ export default function ChatBar({
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/messages/${selectedContact.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/messages/${selectedContact.id}`,
           {
             headers: {
               ...(token
@@ -247,7 +247,7 @@ export default function ChatBar({
     /*
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:5000/api/messages", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/messages`, {
         method: "POST",
 
         headers: {

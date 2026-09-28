@@ -21,7 +21,7 @@ export default function OtpModal({ mobile, onClose, onVerified }: Props) {
     }
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/verifyOtp", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/verifyOtp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phonenumber: mobile, otp }),
@@ -42,7 +42,7 @@ export default function OtpModal({ mobile, onClose, onVerified }: Props) {
   const handleResend = async () => {
     setResendLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/sendOtp", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/sendOtp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phonenumber: mobile }),

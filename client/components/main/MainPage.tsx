@@ -57,7 +57,7 @@ export default function MainPage() {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const profileRes = await fetch("http://localhost:5000/api/auth/profile", {
+        const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -73,7 +73,7 @@ export default function MainPage() {
         // fetch contacts from server (persisted contacts)
         try {
           const token = localStorage.getItem("token");
-          const contactsRes = await fetch("http://localhost:5000/api/contacts", {
+          const contactsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contacts`, {
             headers: {
               "Content-Type": "application/json",
               ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -133,7 +133,7 @@ export default function MainPage() {
   const handleCreateContact = async (c: { name: string; mobile: string }) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/contacts", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contacts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -177,7 +177,7 @@ export default function MainPage() {
   const handleDeleteContact = async (id: string) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/contacts/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contacts/${id}`, {
         method: "DELETE",
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -205,7 +205,7 @@ export default function MainPage() {
   const handleEditContact = async (id: string, payload: { name?: string; mobile?: string }) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/contacts/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contacts/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
