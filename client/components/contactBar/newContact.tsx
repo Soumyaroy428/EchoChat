@@ -224,7 +224,7 @@ export default function NewContact({
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="w-28">
+                <div className="w-[30%]">
                   <label className="text-sm text-gray-400 mb-1 block">Country</label>
                   <select value={country} onChange={(e) => setCountry(e.target.value)} className="w-full bg-transparent border-b border-white/10 py-2 px-1 text-white outline-none">
                     <option>IN +91</option>
@@ -232,26 +232,26 @@ export default function NewContact({
                     <option>GB +44</option>
                   </select>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <label className="text-sm text-gray-400 mb-1 block">Phone</label>
                   <input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-transparent border-b border-white/10 py-2 px-1 text-white outline-none" placeholder="Phone" />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mt-2">
-                <div>
-                  <p className="text-sm font-medium">Sync contact to phone</p>
-                  <p className="text-xs text-gray-400">This contact will be added to your phone's address book.</p>
+              <div className="flex items-center justify-between mt-4 gap-4">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">Sync contact to phone</p>
+                  <p className="text-xs text-gray-400 leading-tight mt-1">This contact will be added to your phone's address book.</p>
                 </div>
-                <label className="inline-flex items-center cursor-pointer">
+                <label className="inline-flex items-center cursor-pointer flex-shrink-0">
                   <input type="checkbox" checked={syncToPhone} onChange={(e) => setSyncToPhone(e.target.checked)} className="sr-only" />
                   <span className={`w-10 h-6 inline-block rounded-full transition-colors ${syncToPhone ? 'bg-green-500' : 'bg-gray-600'}`} />
                 </label>
               </div>
 
-              <div className="mt-6 flex justify-end gap-3">
-                <button onClick={() => setMode("menu")} className="rounded px-4 py-2 text-sm text-gray-300 hover:bg-white/5">Cancel</button>
-                <button onClick={handleSave} className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500">Save</button>
+              <div className="mt-6 flex justify-end gap-3 pb-4">
+                <button onClick={() => setMode("menu")} className="rounded px-4 py-2 text-sm text-gray-300 hover:bg-white/5 flex-shrink-0">Cancel</button>
+                <button onClick={handleSave} className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 flex-shrink-0">Save</button>
               </div>
             </div>
           </div>

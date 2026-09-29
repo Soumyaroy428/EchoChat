@@ -348,7 +348,7 @@ export default function MainPage() {
         </div>
 
         {/* Left Panel (ContactBar / Profile) - Hidden on mobile if a chat is selected */}
-        <div className={`w-full md:w-[320px] xl:w-[420px] flex-shrink-0 flex flex-col h-[calc(100%-4.5rem)] md:h-full ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`w-full md:w-[280px] lg:w-[320px] xl:w-[420px] flex-shrink-0 flex flex-col h-[calc(100%-4.5rem)] md:h-full ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
           {isProfileOpen ? (
             <UserProfileEdit
               user={user}
