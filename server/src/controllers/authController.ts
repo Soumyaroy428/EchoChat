@@ -47,6 +47,8 @@ export const register = async (req: Request, res: Response) => {
       mobile,
       password: hashedPassword,
       name: name || "",
+      isOnline: true,
+      lastSeen: new Date(),
     });
 
     await user.save();

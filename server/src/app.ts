@@ -79,10 +79,33 @@ app.get("/", (req, res) => {
   res.send("EchoChat API Running 🚀");
 });
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   const userId = socket.data.userId as string;
   socket.join(`user:${userId}`);
   console.log(`Socket connected: ${userId}`);
+
+  // Set user as online
+  try {
+    await User.findByIdAndUpdate(userId, { isOnline: true });
+  } catch (err) {
+    console.error("Error updating online status:", err);
+  }
+
+  socket.on("disconnect", async () => {
+    console.log(`Socket disconnected: ${userId}`);
+    // Check if user has other active connections
+    const sockets = await io.in(`user:${userId}`).fetchSockets();
+    if (sockets.length === 0) {
+      try {
+        await User.findByIdAndUpdate(userId, { 
+          isOnline: false, 
+          lastSeen: new Date() 
+        });
+      } catch (err) {
+        console.error("Error updating offline status:", err);
+      }
+    }
+  });
 
   socket.on(
     "send_message",
