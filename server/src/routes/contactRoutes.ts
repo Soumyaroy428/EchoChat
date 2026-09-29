@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { createContact, getContacts, deleteContact, updateContact } from "../controllers/contactController";
+import { authenticate } from "../middleware/auth";
 
 const router = Router();
+
+// Apply authentication middleware to all contact routes
+router.use(authenticate);
 
 // POST /api/contacts/   -> create a new contact
 router.post("/", createContact);

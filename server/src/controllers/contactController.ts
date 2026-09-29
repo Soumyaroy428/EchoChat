@@ -1,10 +1,16 @@
-import { Request, Response } from "express";
+import { Response } from "express";
+import { AuthRequest } from "../middleware/auth";
 import NewContact from "../models/newContact";
 import User from "../models/User";
 
-export const createContact = async (req: Request, res: Response) => {
+export const createContact = async (req: AuthRequest, res: Response) => {
   try {
     const { name, mobile, avatar } = req.body;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
     if (!mobile) {
       return res.status(400).json({ error: "Mobile number is required" });
@@ -19,6 +25,7 @@ export const createContact = async (req: Request, res: Response) => {
     const username = (name || mobile).toString().replace(/\s+/g, "_").toLowerCase();
 
     const contact = new NewContact({
+      ownerId: userId,
       firstName,
       lastName,
       username,
@@ -51,9 +58,12 @@ export const createContact = async (req: Request, res: Response) => {
   }
 };
 
-export const getContacts = async (req: Request, res: Response) => {
+export const getContacts = async (req: AuthRequest, res: Response) => {
   try {
-    const contacts = await NewContact.find().select("firstName lastName username mobile active");
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const contacts = await NewContact.find({ ownerId: userId }).select("firstName lastName username mobile active");
     const mappedContacts = await Promise.all(
       contacts.map(async (contact) => {
         const user = await User.findOne({ mobile: contact.mobile }).select(
@@ -83,16 +93,18 @@ export const getContacts = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteContact = async (req: Request, res: Response) => {
+export const deleteContact = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
+
     if (!id) {
       return res.status(400).json({ error: "Contact id is required" });
     }
 
-    const result = await NewContact.findByIdAndDelete(id);
+    const result = await NewContact.findOneAndDelete({ _id: id, ownerId: userId });
     if (!result) {
-      return res.status(404).json({ error: "Contact not found" });
+      return res.status(404).json({ error: "Contact not found or unauthorized" });
     }
 
     res.json({ message: "Contact deleted", id });
@@ -102,9 +114,10 @@ export const deleteContact = async (req: Request, res: Response) => {
   }
 };
 
-export const updateContact = async (req: Request, res: Response) => {
+export const updateContact = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
     const { name, mobile, avatar } = req.body as { name?: string; mobile?: string; avatar?: string };
 
     if (!id) {
@@ -125,11 +138,11 @@ export const updateContact = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "No valid fields to update" });
     }
 
-    const updated = await NewContact.findByIdAndUpdate(id, updateFields, { new: true }).select(
+    const updated = await NewContact.findOneAndUpdate({ _id: id, ownerId: userId }, updateFields, { new: true }).select(
       "firstName lastName username mobile active"
     );
 
-    if (!updated) return res.status(404).json({ error: "Contact not found" });
+    if (!updated) return res.status(404).json({ error: "Contact not found or unauthorized" });
 
     res.json({
       message: "Contact updated",

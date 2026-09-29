@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const newContactSchema = new mongoose.Schema({
+  ownerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   avatar: {
     type: String,
     default: "",
@@ -20,7 +25,7 @@ const newContactSchema = new mongoose.Schema({
   mobile: {
     type: String,
     required: true,
-    },
+  },
   active: {
     type: Boolean,
     default: true,
