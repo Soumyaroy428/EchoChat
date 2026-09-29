@@ -72,7 +72,8 @@ export default function NewContact({
 
   const handleSave = () => {
     const name = `${firstName.trim()} ${lastName.trim()}`.trim() || username || phone;
-    const mobile = `${country.split(" ")[2] ? country.split(" ")[2] : "+91"}${phone.trim()}`.replace(/\s+/g, "");
+    // Do not force a country code since registration does not force it.
+    const mobile = phone.trim().replace(/\s+/g, "");
     if (!name) {
       alert("Please enter a name or username");
       return;
