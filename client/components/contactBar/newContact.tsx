@@ -199,15 +199,15 @@ export default function NewContact({
 
         {/* New contact form (rendered as a panel replacing list) */}
         {(mode === "create" || mode === "edit") && (
-          <div className="fixed inset-y-4 left-30 w-[430px] bg-[#0c223d] border-l border-white/10 p-6 rounded-3xl">
-            <div className="flex items-center gap-3 mb-4">
+          <div className="absolute inset-0 z-20 flex flex-col bg-[#050b14] p-4 rounded-[1.75rem]">
+            <div className="flex items-center gap-3 mb-4 flex-shrink-0">
               <button onClick={() => { setMode("menu"); onClose?.(); }} className="p-2 rounded-full hover:bg-white/5">
                 <ArrowLeft size={18} />
               </button>
               <h3 className="text-lg font-semibold">{mode === "edit" ? "Edit contact" : "New contact"}</h3>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1 overflow-y-auto pr-1">
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">First name</label>
                 <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full bg-transparent border-b border-white/10 py-2 px-1 text-white outline-none" placeholder="First name" />
