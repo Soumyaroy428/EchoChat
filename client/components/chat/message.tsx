@@ -10,6 +10,7 @@ import {
   Smile,
   Send,
   UserPlus,
+  ArrowLeft,
   Info,
   SquareCheck,
   BellOff,
@@ -64,6 +65,7 @@ type ChatBarProps = {
   selectedContact: Contact | null;
   currentUser: CurrentUser | null;
   onOpenContactInfo: () => void;
+  onBack?: () => void;
 };
 
 type Message = {
@@ -78,6 +80,7 @@ export default function ChatBar({
   selectedContact,
   currentUser,
   onOpenContactInfo,
+  onBack,
 }: ChatBarProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -102,6 +105,7 @@ export default function ChatBar({
     if (!token) return;
 
     chatSocket.auth = { token };
+    chatSocket.connect();
     const handleMessage = (message: {
       id?: string;
       senderId: string;
@@ -323,11 +327,22 @@ export default function ChatBar({
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.06),_transparent_20%),radial-gradient(circle_at_bottom_right,_rgba(16,163,127,0.12),_transparent_18%)] opacity-80" />
 
       {/* Header */}
-      <div className="relative z-20 flex items-center justify-between gap-4 border-b border-white/10 px-6 py-4">
+      <div className="relative z-20 flex items-center justify-between gap-2 md:gap-4 border-b border-white/10 px-4 md:px-6 py-3 md:py-4">
         {/* Contact information */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
+          {selectedContact && onBack && (
+            <button 
+              type="button"
+              className="md:hidden p-2 rounded-full text-white/70 hover:bg-white/10 transition flex-shrink-0"
+              onClick={onBack}
+              aria-label="Back to contacts"
+            >
+              <ArrowLeft size={24} />
+            </button>
+          )}
+          
           {/* Avatar */}
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-lg font-semibold uppercase text-white shadow-sm shadow-black/20">
+          <div className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-white/10 text-lg font-semibold uppercase text-white shadow-sm shadow-black/20 flex-shrink-0">
             {selectedContact ? (
               selectedContact.avatar ? (
                 <img

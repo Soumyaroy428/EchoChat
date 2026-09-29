@@ -332,45 +332,60 @@ export default function MainPage() {
   }
 
   return (
-    <div className="h-screen w-screen bg-[#05060b] text-white overflow-hidden p-4">
-      <div className="grid h-full gap-4 xl:grid-cols-[96px_minmax(360px,420px)_1fr]">
-        <Side
-          hasActiveChat={!!selectedContact}
-          isProfileOpen={isProfileOpen}
-          onProfileClick={() => setIsProfileOpen((isOpen) => !isOpen)}
-          onMessagesClick={() => setIsProfileOpen(false)}
-          avatar={user?.avatar}
-          userName={user?.name}
-        />
-
-        {isProfileOpen ? (
-          <UserProfileEdit
-            user={user}
-            onLogout={handleLogout}
-            onAvatarChange={(avatar) => setUser((currentUser) => currentUser ? { ...currentUser, avatar } : currentUser)}
-            onProfileChange={(changes) => setUser((currentUser) => currentUser ? { ...currentUser, ...changes } : currentUser)}
+    <div className="h-screen w-screen bg-[#05060b] text-white overflow-hidden p-2 md:p-4">
+      <div className="flex flex-col md:flex-row h-full w-full gap-2 md:gap-4 relative overflow-hidden">
+        
+        {/* Side Navigation - Bottom bar on mobile, left bar on desktop */}
+        <div className={`md:w-[80px] xl:w-[96px] flex-shrink-0 order-last md:order-first mt-auto md:mt-0 h-16 md:h-full ${selectedContact ? 'hidden md:block' : 'block'}`}>
+          <Side
+            hasActiveChat={!!selectedContact}
+            isProfileOpen={isProfileOpen}
+            onProfileClick={() => setIsProfileOpen((isOpen) => !isOpen)}
+            onMessagesClick={() => setIsProfileOpen(false)}
+            avatar={user?.avatar}
+            userName={user?.name}
           />
-        ) : isContactInfoOpen ? (
-          <ContactInfoPanel contact={selectedContact} onClose={() => setIsContactInfoOpen(false)} />
-        ) : (
-          <ContactBar
-          filteredContacts={filteredContacts}
-          selectedContact={selectedContact}
-          searchTerm={searchTerm}
-          onSearchChange={(value) => setSearchTerm(value)}
-          onSelectContact={handleSelectContact}
-          onLogout={handleLogout}
-          onCreateContact={handleCreateContact}
-          onDeleteContact={handleDeleteContact}
-        onEditContact={handleEditContact}
-          />
-        )}
+        </div>
 
-        <ChatBar
-          selectedContact={selectedContact}
-          currentUser={user}
-          onOpenContactInfo={() => setIsContactInfoOpen(true)}
-        />
+        {/* Left Panel (ContactBar / Profile) - Hidden on mobile if a chat is selected */}
+        <div className={`w-full md:w-[320px] xl:w-[420px] flex-shrink-0 flex flex-col h-[calc(100%-4.5rem)] md:h-full ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
+          {isProfileOpen ? (
+            <UserProfileEdit
+              user={user}
+              onLogout={handleLogout}
+              onAvatarChange={(avatar) => setUser((currentUser) => currentUser ? { ...currentUser, avatar } : currentUser)}
+              onProfileChange={(changes) => setUser((currentUser) => currentUser ? { ...currentUser, ...changes } : currentUser)}
+            />
+          ) : isContactInfoOpen ? (
+            <ContactInfoPanel contact={selectedContact} onClose={() => setIsContactInfoOpen(false)} />
+          ) : (
+            <ContactBar
+              filteredContacts={filteredContacts}
+              selectedContact={selectedContact}
+              searchTerm={searchTerm}
+              onSearchChange={(value) => setSearchTerm(value)}
+              onSelectContact={handleSelectContact}
+              onLogout={handleLogout}
+              onCreateContact={handleCreateContact}
+              onDeleteContact={handleDeleteContact}
+              onEditContact={handleEditContact}
+            />
+          )}
+        </div>
+
+        {/* Right Panel (ChatBar) - Hidden on mobile if NO chat is selected */}
+        <div className={`flex-1 w-full h-full flex-col ${!selectedContact ? 'hidden md:flex' : 'flex'}`}>
+          <ChatBar
+            selectedContact={selectedContact}
+            currentUser={user}
+            onOpenContactInfo={() => setIsContactInfoOpen(true)}
+            onBack={() => {
+              setSelectedContact(null);
+              setIsContactInfoOpen(false);
+            }}
+          />
+        </div>
+
       </div>
     </div>
   );
