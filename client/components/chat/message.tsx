@@ -34,6 +34,8 @@ import {
   Star,
   Pencil,
   ChevronDown,
+  Check,
+  CheckCheck,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -74,6 +76,8 @@ type Message = {
   content: string;
   time: string;
   isMedia?: boolean;
+  status?: "sent" | "delivered" | "read";
+  mediaUrl?: string;
 };
 
 export default function ChatBar({
@@ -85,6 +89,8 @@ export default function ChatBar({
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const socketRef = useRef(socket);
@@ -112,6 +118,7 @@ export default function ChatBar({
       receiverId: string;
       content: string;
       timestamp: string;
+      mediaUrl?: string;
     }) => {
       const otherUserId = message.senderId === currentUser?.id ? message.receiverId : message.senderId;
       if (!selectedContact || selectedContact.id !== otherUserId) {
@@ -127,14 +134,54 @@ export default function ChatBar({
             sender: message.senderId === currentUser.id ? "me" : "them",
             content: message.content,
             time: formatTime(message.timestamp),
+            status: message.senderId === currentUser.id ? "sent" : "read",
+            mediaUrl: message.mediaUrl,
           },
         ];
       });
+
+      if (message.senderId !== currentUser.id && message.id) {
+        socketRef.current.emit("mark_read", { messageIds: [message.id], senderId: message.senderId });
+      }
     };
 
+    const handleTyping = (data: { senderId: string }) => {
+      if (selectedContact && selectedContact.id === data.senderId) {
+        setIsTyping(true);
+      }
+    };
+    const handleStopTyping = (data: { senderId: string }) => {
+      if (selectedContact && selectedContact.id === data.senderId) {
+        setIsTyping(false);
+      }
+    };
+    const handleMessagesRead = (data: { messageIds: string[], readerId: string }) => {
+      if (selectedContact && selectedContact.id === data.readerId) {
+        setMessages(prev => prev.map(m => data.messageIds.includes(m.id) ? { ...m, status: "read" } : m));
+      }
+    };
+    const handleMessagesDelivered = (data: { messageIds: string[], receiverId: string }) => {
+      if (selectedContact && selectedContact.id === data.receiverId) {
+        setMessages(prev => prev.map(m => data.messageIds.includes(m.id) && m.status !== "read" ? { ...m, status: "delivered" } : m));
+      };
+    };
+    const handleMessageDeleted = (data: { messageId: string }) => {
+      setMessages(prev => prev.filter(m => m.id !== data.messageId));
+    };
+
+    chatSocket.on("user_typing", handleTyping);
+    chatSocket.on("user_stop_typing", handleStopTyping);
+    chatSocket.on("messages_read", handleMessagesRead);
+    chatSocket.on("messages_delivered", handleMessagesDelivered);
+    chatSocket.on("message_deleted", handleMessageDeleted);
     chatSocket.on("message_received", handleMessage);
 
     return () => {
+      chatSocket.off("user_typing", handleTyping);
+      chatSocket.off("user_stop_typing", handleStopTyping);
+      chatSocket.off("messages_read", handleMessagesRead);
+      chatSocket.off("messages_delivered", handleMessagesDelivered);
+      chatSocket.off("message_deleted", handleMessageDeleted);
       chatSocket.off("message_received", handleMessage);
     };
   }, [currentUser?.id, selectedContact?.id]);
@@ -170,10 +217,12 @@ export default function ChatBar({
         const data = await response.json();
 
         const formattedMessages = (data.messages || []).map((message: any) => ({
-          id: message.id,
+          id: message.id || message._id?.toString(),
           sender: message.senderId === currentUser.id ? "me" : "them",
           content: message.content,
           time: formatTime(new Date(message.timestamp || Date.now())),
+          status: message.status || "sent",
+          mediaUrl: message.mediaUrl,
         }));
 
         setMessages((previous) => {
@@ -183,6 +232,11 @@ export default function ChatBar({
             ...previous.filter((message) => !historyIds.has(message.id)),
           ];
         });
+
+        const unreadIds = formattedMessages.filter((m: any) => m.sender === "them" && m.status !== "read" && m.id).map((m: any) => m.id);
+        if (unreadIds.length > 0) {
+          socketRef.current.emit("mark_read", { messageIds: unreadIds, senderId: selectedContact.id });
+        }
       } catch (error) {
         console.error("Failed to load message history", error);
 
@@ -210,10 +264,19 @@ export default function ChatBar({
     }
   };
 
-  const handleDeleteMessage = (messageId: string) => {
-    setMessages((previousMessages) =>
-      previousMessages.filter((message) => message.id !== messageId),
-    );
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/messages/${messageId}`,
+        {
+          method: "DELETE",
+          headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        }
+      );
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      socketRef.current.emit("message_deleted", { messageId, receiverId: selectedContact?.id });
+    } catch (e) { console.error(e); }
   };
 
   // Send message
@@ -363,6 +426,7 @@ export default function ChatBar({
             <h2 className="text-xl font-semibold text-white">
               {selectedContact ? selectedContact.name : "Welcome to EchoChat"}
             </h2>
+            {isTyping && <span className="text-xs text-green-400">typing...</span>}
 
             {selectedContact && (
               <p className="text-xs text-gray-400">
@@ -609,9 +673,16 @@ export default function ChatBar({
                       }`}
                     >
                       <div className="flex items-start gap-2">
-                        <p className="min-w-0 flex-1 break-words">
-                          {message.content}
-                        </p>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          {message.mediaUrl && (
+                            <img src={message.mediaUrl} alt="media" className="max-w-[200px] sm:max-w-[250px] rounded-lg mb-2 object-cover" />
+                          )}
+                          {message.content && (
+                            <p className="break-words">
+                              {message.content}
+                            </p>
+                          )}
+                        </div>
 
                         <DropdownMenu>
                           <DropdownMenuTrigger
@@ -682,7 +753,15 @@ export default function ChatBar({
                       <div className="mt-2 flex items-center justify-end gap-2 text-[11px] text-gray-200/80">
                         <span>{message.time}</span>
 
-                        {message.sender === "me" && <span>✓</span>}
+                        {message.sender === "me" && (
+                          <span className={message.status === "read" ? "text-blue-400" : "text-gray-400"}>
+                            {message.status === "sent" ? (
+                              <Check size={14} />
+                            ) : (
+                              <CheckCheck size={14} />
+                            )}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -697,10 +776,35 @@ export default function ChatBar({
                 className="flex items-center gap-3 rounded-full bg-[#15202f] px-4 py-3 text-gray-200 shadow-[0_10px_40px_-30px_rgba(0,0,0,0.8)]"
               >
                 {/* Attach */}
+                <input
+                  type="file"
+                  accept="image/*,video/*"
+                  className="hidden"
+                  id="media-upload"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file || !selectedContact) return;
+                    try {
+                      const formData = new FormData();
+                      formData.append("media", file);
+                      const token = localStorage.getItem("token");
+                      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/media/upload`, {
+                        method: "POST",
+                        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                        body: formData
+                      });
+                      if (!response.ok) throw new Error("Upload failed");
+                      const data = await response.json();
+                      socketRef.current.emit("send_message", { receiverId: selectedContact.id, mediaUrl: data.url, content: "" }, () => {});
+                    } catch (error) { console.error(error); }
+                    e.target.value = "";
+                  }}
+                />
                 <button
                   type="button"
                   className="rounded-full p-2 text-gray-400 transition hover:bg-white/5 hover:text-white"
                   aria-label="Attach"
+                  onClick={() => document.getElementById("media-upload")?.click()}
                 >
                   <Paperclip size={18} />
                 </button>
@@ -717,7 +821,14 @@ export default function ChatBar({
                 {/* Input */}
                 <input
                   value={newMessage}
-                  onChange={(event) => setNewMessage(event.target.value)}
+                  onChange={(event) => {
+                    setNewMessage(event.target.value);
+                    socketRef.current.emit("typing", { receiverId: selectedContact?.id });
+                    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+                    typingTimeoutRef.current = setTimeout(() => {
+                      socketRef.current.emit("stop_typing", { receiverId: selectedContact?.id });
+                    }, 2000);
+                  }}
                   type="text"
                   placeholder="Type a message"
                   className="flex-1 bg-transparent outline-none placeholder:text-gray-500"
