@@ -18,6 +18,15 @@ const messageHistorySchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  status: {
+    type: String,
+    enum: ["sent", "delivered", "read"],
+    default: "sent",
+  },
+  mediaUrl: {
+    type: String,
+    default: "",
+  },
 });
 
 export default mongoose.model("MessageHistory", messageHistorySchema);

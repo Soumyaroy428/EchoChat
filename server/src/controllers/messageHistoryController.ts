@@ -10,6 +10,8 @@ const mapMessage = (message: any) => ({
   receiverId: message.receiverId,
   content: message.content,
   timestamp: message.timestamp,
+  status: message.status || "sent",
+  mediaUrl: message.mediaUrl,
 });
 
 const resolveUserId = async (id: string) => {
@@ -83,6 +85,31 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
     res.status(201).json({ message: mapMessage(message) });
   } catch (error) {
     console.error("Send message error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const deleteMessage = async (req: AuthRequest, res: Response) => {
+  try {
+    const messageId = req.params.messageId;
+    const userId = req.userId;
+
+    if (!messageId || !userId) {
+      return res.status(400).json({ error: "Message ID is required" });
+    }
+
+    const message = await MessageHistory.findOneAndDelete({
+      _id: messageId,
+      senderId: userId
+    });
+
+    if (!message) {
+      return res.status(404).json({ error: "Message not found or unauthorized" });
+    }
+
+    res.json({ success: true, messageId });
+  } catch (error) {
+    console.error("Delete message error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
