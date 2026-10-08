@@ -23,10 +23,12 @@ import { useState, type ReactNode } from "react";
 type Contact = {
   id: string;
   name: string;
-  mobile: string;
+  mobile?: string;
   avatar?: string;
-  isOnline: boolean;
+  isOnline?: boolean;
   lastSeen?: string;
+  isGroup?: boolean;
+  members?: string[];
 };
 
 type ContactInfoPanelProps = {
