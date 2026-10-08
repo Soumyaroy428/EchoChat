@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes";
 import contactRoutes from "./routes/contactRoutes";
+import groupRoutes from "./routes/groupRoutes";
 import messageHistoryRoutes from "./routes/messageHistoryRoutes";
 import mediaRoutes from "./routes/mediaRoutes";
 import bodyParser from "body-parser";
@@ -13,6 +14,7 @@ import jwt from "jsonwebtoken";
 import MessageHistory from "./models/messageHistory";
 import User from "./models/User";
 import NewContact from "./models/newContact";
+import Group from "./models/Group";
 
 const app = express();
 const server = createServer(app);
@@ -20,7 +22,8 @@ const mapMessage = (message: {
   _id?: { toString(): string };
   id?: string;
   senderId: string;
-  receiverId: string;
+  receiverId?: string;
+  groupId?: string;
   content: string;
   timestamp: Date;
   status?: string;
@@ -29,6 +32,7 @@ const mapMessage = (message: {
   id: message._id?.toString() || message.id,
   senderId: message.senderId,
   receiverId: message.receiverId,
+  groupId: message.groupId,
   content: message.content,
   timestamp: message.timestamp,
   status: message.status || "sent",
@@ -172,34 +176,57 @@ io.on("connection", async (socket) => {
   socket.on(
     "send_message",
     async (
-      payload: { receiverId?: string; content?: string; mediaUrl?: string },
+      payload: { receiverId?: string; groupId?: string; content?: string; mediaUrl?: string },
       acknowledge: (response: { message?: ReturnType<typeof mapMessage>; error?: string }) => void,
     ) => {
       const receiverId = payload?.receiverId;
+      const groupId = payload?.groupId;
       const content = payload?.content || "";
       const mediaUrl = payload?.mediaUrl || "";
 
-      if (!receiverId || (content.trim() === "" && mediaUrl.trim() === "")) {
-        acknowledge({ error: "Receiver ID and message content are required" });
+      if ((!receiverId && !groupId) || (content.trim() === "" && mediaUrl.trim() === "")) {
+        acknowledge({ error: "Receiver/Group ID and message content are required" });
         return;
       }
 
       try {
-        const canonicalReceiverId = await resolveUserId(receiverId);
-        const message = await MessageHistory.create({
-          senderId: userId,
-          receiverId: canonicalReceiverId,
-          content: content.trim(),
-          mediaUrl: mediaUrl.trim(),
-          timestamp: new Date(),
-        });
-        const mappedMessage = mapMessage(message);
+        if (groupId) {
+          const group = await Group.findById(groupId);
+          if (!group || !group.members.includes(userId)) {
+            acknowledge({ error: "Group not found or you are not a member" });
+            return;
+          }
 
-        io.to([`user:${userId}`, `user:${canonicalReceiverId}`]).emit(
-          "message_received",
-          mappedMessage,
-        );
-        acknowledge({ message: mappedMessage });
+          const message = await MessageHistory.create({
+            senderId: userId,
+            groupId,
+            content: content.trim(),
+            mediaUrl: mediaUrl.trim(),
+            timestamp: new Date(),
+          });
+          const mappedMessage = mapMessage(message);
+
+          const memberRooms = group.members.map(memberId => `user:${memberId}`);
+          io.to(memberRooms).emit("message_received", mappedMessage);
+          acknowledge({ message: mappedMessage });
+
+        } else if (receiverId) {
+          const canonicalReceiverId = await resolveUserId(receiverId);
+          const message = await MessageHistory.create({
+            senderId: userId,
+            receiverId: canonicalReceiverId,
+            content: content.trim(),
+            mediaUrl: mediaUrl.trim(),
+            timestamp: new Date(),
+          });
+          const mappedMessage = mapMessage(message);
+
+          io.to([`user:${userId}`, `user:${canonicalReceiverId}`]).emit(
+            "message_received",
+            mappedMessage,
+          );
+          acknowledge({ message: mappedMessage });
+        }
       } catch (error) {
         console.error("Socket message error:", error);
         acknowledge({ error: "Failed to send message" });
@@ -210,6 +237,7 @@ io.on("connection", async (socket) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactRoutes);
+app.use("/api/groups", groupRoutes);
 app.use("/api/messages", messageHistoryRoutes);
 app.use("/api/media", mediaRoutes);
 

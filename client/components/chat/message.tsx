@@ -198,7 +198,7 @@ export default function ChatBar({
 
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/messages/${selectedContact.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/messages/${selectedContact.id}${selectedContact.isGroup ? '?isGroup=true' : ''}`,
           {
             headers: {
               ...(token
@@ -299,7 +299,10 @@ export default function ChatBar({
 
     chatSocket.emit(
       "send_message",
-      { receiverId: selectedContact.id, content: trimmed },
+      { 
+        ...(selectedContact.isGroup ? { groupId: selectedContact.id } : { receiverId: selectedContact.id }), 
+        content: trimmed 
+      },
       (response: { error?: string }) => {
         if (response.error) {
           console.error("Failed to send message:", response.error);
@@ -430,7 +433,9 @@ export default function ChatBar({
 
             {selectedContact && (
               <p className="text-xs text-gray-400">
-                {selectedContact.isOnline
+                {selectedContact.isGroup
+                  ? `${selectedContact.members?.length || 0} members`
+                  : selectedContact.isOnline
                   ? "Active now"
                   : selectedContact.lastSeen ||
                     "Last seen on " + new Date().toLocaleString()}
@@ -795,7 +800,10 @@ export default function ChatBar({
                       });
                       if (!response.ok) throw new Error("Upload failed");
                       const data = await response.json();
-                      socketRef.current.emit("send_message", { receiverId: selectedContact.id, mediaUrl: data.url, content: "" }, () => {});
+                      const payload = selectedContact.isGroup 
+                        ? { groupId: selectedContact.id, mediaUrl: data.url, content: "" }
+                        : { receiverId: selectedContact.id, mediaUrl: data.url, content: "" };
+                      socketRef.current.emit("send_message", payload, () => {});
                     } catch (error) { console.error(error); }
                     e.target.value = "";
                   }}

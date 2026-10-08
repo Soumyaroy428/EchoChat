@@ -7,7 +7,11 @@ const messageHistorySchema = new mongoose.Schema({
   },
   receiverId: {
     type: String,
-    required: true,
+    required: false,
+  },
+  groupId: {
+    type: String,
+    required: false,
   },
   content: {
     type: String,

@@ -99,18 +99,59 @@ export default function NewContact({
     onClose?.();
   };
 
+  const [groupName, setGroupName] = useState("");
+  const [groupDescription, setGroupDescription] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+
+  const handleSaveGroup = async () => {
+    if (!groupName.trim()) {
+      alert("Please enter a group name");
+      return;
+    }
+    if (selectedMembers.length === 0) {
+      alert("Please select at least one contact to add to the group");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/groups`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          name: groupName,
+          description: groupDescription,
+          members: selectedMembers,
+        }),
+      });
+
+      if (res.ok) {
+        // Just reload window to fetch the new groups on mount for simplicity right now
+        window.location.reload();
+      } else {
+        alert("Failed to create group");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error creating group");
+    }
+  };
+
   const filtered = useMemo(() => {
     const q = menuSearch.trim().toLowerCase();
     if (!q) return contacts;
     return contacts.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.mobile.toLowerCase().includes(q)
+      (c) => c.name.toLowerCase().includes(q) || (c.mobile && c.mobile.toLowerCase().includes(q))
     );
   }, [contacts, menuSearch]);
 
   // New Chat view (like second picture) and New Contact form (third picture)
   if (inline) {
     return (
-      <div className="w-full h-full flex flex-col">
+      <div className="w-full h-full flex flex-col relative">
         <div className="flex items-center gap-3 mb-4">
           <button
             onClick={() => onClose?.()}
@@ -139,7 +180,7 @@ export default function NewContact({
             <button
               className="w-full flex items-center gap-3 rounded px-2 py-3 text-sm text-white hover:bg-white/5"
               type="button"
-              onClick={() => alert("New group - not implemented")}
+              onClick={() => setMode("create-group" as any)}
             >
               <span className="inline-block h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center">👥</span>
               New group
@@ -150,7 +191,7 @@ export default function NewContact({
               type="button"
               onClick={() => setMode("create")}
             >
-              <span className="inline-block h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center">➕</span>
+              <span className="inline-block h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center">👤</span>
               New contact
             </button>
 
@@ -159,7 +200,7 @@ export default function NewContact({
               type="button"
               onClick={() => alert("New community - not implemented")}
             >
-              <span className="inline-block h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center">👥</span>
+              <span className="inline-block h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center">📢</span>
               New community
             </button>
           </div>
@@ -171,7 +212,7 @@ export default function NewContact({
               <p className="mb-3">No contacts found</p>
             </div>
           ) : (
-            filtered.map((c) => (
+            filtered.filter(c => !c.isGroup).map((c) => (
               <button
                 key={c.id}
                 onClick={() => onSelectContact?.(c)}
@@ -197,6 +238,58 @@ export default function NewContact({
             ))
           )}
         </div>
+
+        {/* New group form */}
+        {mode === "create-group" as any && (
+          <div className="absolute inset-0 z-20 flex flex-col bg-[#050b14] p-4 rounded-[1.75rem]">
+            <div className="flex items-center gap-3 mb-4 flex-shrink-0">
+              <button onClick={() => setMode("menu")} className="p-2 rounded-full hover:bg-white/5">
+                <ArrowLeft size={18} />
+              </button>
+              <h3 className="text-lg font-semibold">New group</h3>
+            </div>
+
+            <div className="space-y-4 flex-1 overflow-y-auto pr-1">
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Group subject</label>
+                <input value={groupName} onChange={(e) => setGroupName(e.target.value)} className="w-full bg-transparent border-b border-green-500/60 py-2 px-1 text-white outline-none" placeholder="Group Subject" />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Group description (optional)</label>
+                <input value={groupDescription} onChange={(e) => setGroupDescription(e.target.value)} className="w-full bg-transparent border-b border-white/10 py-2 px-1 text-white outline-none" placeholder="Group Description" />
+              </div>
+
+              <div className="mt-4">
+                <label className="text-sm text-gray-400 mb-2 block">Select Members</label>
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {contacts.filter(c => !c.isGroup).map((c) => (
+                    <label key={c.id} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={selectedMembers.includes(c.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedMembers([...selectedMembers, c.id]);
+                          else setSelectedMembers(selectedMembers.filter(id => id !== c.id));
+                        }}
+                        className="w-4 h-4 rounded bg-transparent border border-white/30"
+                      />
+                      <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-200">
+                        {c.name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-white">{c.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3 pb-4">
+                <button onClick={() => setMode("menu")} className="rounded px-4 py-2 text-sm text-gray-300 hover:bg-white/5 flex-shrink-0">Cancel</button>
+                <button onClick={handleSaveGroup} className="rounded bg-[#0d6b50] px-4 py-2 text-sm font-medium text-white hover:bg-[#109e72] flex-shrink-0">Create Group</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* New contact form (rendered as a panel replacing list) */}
         {(mode === "create" || mode === "edit") && (

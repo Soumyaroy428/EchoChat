@@ -8,6 +8,7 @@ const mapMessage = (message: any) => ({
   id: message._id?.toString() || message.id,
   senderId: message.senderId,
   receiverId: message.receiverId,
+  groupId: message.groupId,
   content: message.content,
   timestamp: message.timestamp,
   status: message.status || "sent",
@@ -43,16 +44,24 @@ export const getMessageHistory = async (req: AuthRequest, res: Response) => {
       : req.params.contactId;
 
     if (!currentUserId || !contactId) {
-      return res.status(400).json({ error: "User and contact IDs are required" });
+      return res.status(400).json({ error: "User and contact/group IDs are required" });
     }
 
-    const participantIds = await getConversationIds(contactId);
-    const messages = await MessageHistory.find({
-      $or: [
-        { senderId: currentUserId, receiverId: { $in: participantIds } },
-        { senderId: { $in: participantIds }, receiverId: currentUserId },
-      ],
-    }).sort({ timestamp: 1 });
+    // Check if the contactId is actually a Group ID
+    const isGroupQuery = req.query.isGroup === "true";
+
+    let messages;
+    if (isGroupQuery) {
+      messages = await MessageHistory.find({ groupId: contactId }).sort({ timestamp: 1 });
+    } else {
+      const participantIds = await getConversationIds(contactId);
+      messages = await MessageHistory.find({
+        $or: [
+          { senderId: currentUserId, receiverId: { $in: participantIds } },
+          { senderId: { $in: participantIds }, receiverId: currentUserId },
+        ],
+      }).sort({ timestamp: 1 });
+    }
 
     res.json({ messages: messages.map(mapMessage) });
   } catch (error) {
@@ -64,23 +73,33 @@ export const getMessageHistory = async (req: AuthRequest, res: Response) => {
 export const sendMessage = async (req: AuthRequest, res: Response) => {
   try {
     const currentUserId = req.userId;
-    const { receiverId, content } = req.body as { receiverId?: string; content?: string };
+    const { receiverId, groupId, content } = req.body as { receiverId?: string; groupId?: string; content?: string };
 
-    if (!currentUserId || !receiverId) {
-      return res.status(400).json({ error: "User and receiver IDs are required" });
+    if (!currentUserId || (!receiverId && !groupId)) {
+      return res.status(400).json({ error: "User ID and (Receiver ID or Group ID) are required" });
     }
 
     if (typeof content !== "string" || content.trim() === "") {
       return res.status(400).json({ error: "Message content is required" });
     }
 
-    const canonicalReceiverId = await resolveUserId(receiverId);
-    const message = await MessageHistory.create({
-      senderId: currentUserId,
-      receiverId: canonicalReceiverId,
-      content: content.trim(),
-      timestamp: new Date(),
-    });
+    let message;
+    if (groupId) {
+      message = await MessageHistory.create({
+        senderId: currentUserId,
+        groupId,
+        content: content.trim(),
+        timestamp: new Date(),
+      });
+    } else if (receiverId) {
+      const canonicalReceiverId = await resolveUserId(receiverId);
+      message = await MessageHistory.create({
+        senderId: currentUserId,
+        receiverId: canonicalReceiverId,
+        content: content.trim(),
+        timestamp: new Date(),
+      });
+    }
 
     res.status(201).json({ message: mapMessage(message) });
   } catch (error) {

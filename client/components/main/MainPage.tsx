@@ -11,12 +11,16 @@ import ContactInfoPanel from "../chat/ContactInfoPanel";
 type Contact = {
   id: string;
   name: string;
-  mobile: string;
+  mobile?: string;
   avatar?: string;
-  isOnline: boolean;
+  isOnline?: boolean;
   lastSeen?: string;
   lastMessage?: string;
   unreadCount?: number;
+  isGroup?: boolean;
+  members?: string[];
+  description?: string;
+  admins?: string[];
 };
 
 type UserProfile = {
@@ -79,27 +83,52 @@ export default function MainPage() {
         // fetch contacts from server (persisted contacts)
         try {
           const token = localStorage.getItem("token");
-          const contactsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contacts`, {
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-          });
+          
+          const [contactsRes, groupsRes] = await Promise.all([
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contacts`, {
+              headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+            }),
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/groups`, {
+              headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+            })
+          ]);
+
+          let mappedContacts: Contact[] = [];
           if (contactsRes.ok) {
-            const contactsData: { contacts?: ContactResponse[] } = await contactsRes.json();
-            const mapped = (contactsData.contacts || []).map((c) => ({
-              id: c.id,
+            const contactsData = await contactsRes.json();
+            mappedContacts = (contactsData.contacts || []).map((c: any) => ({
+              id: c.id || c._id,
               name: `${c.firstName || ""}${c.lastName ? " " + c.lastName : ""}`.trim() || c.username || c.mobile,
               mobile: c.mobile,
               avatar: c.avatar,
-              isOnline: false,
+              isOnline: c.isOnline || false,
+              lastSeen: c.lastSeen,
             }));
-            setContacts(mapped);
-          } else {
-            setContacts([]);
           }
+
+          let mappedGroups: Contact[] = [];
+          if (groupsRes.ok) {
+            const groupsData = await groupsRes.json();
+            mappedGroups = (groupsData.groups || []).map((g: any) => ({
+              id: g._id,
+              name: g.name,
+              isGroup: true,
+              members: g.members,
+              admins: g.admins,
+              description: g.description,
+              avatar: g.avatar,
+            }));
+          }
+
+          setContacts([...mappedGroups, ...mappedContacts]);
         } catch (fetchErr) {
-          console.error("Failed to fetch contacts", fetchErr);
+          console.error("Failed to fetch contacts or groups", fetchErr);
           setContacts([]);
         }
       } catch (error) {
@@ -126,17 +155,18 @@ export default function MainPage() {
 
     const handleMessage = (message: any) => {
       setContacts((prevContacts) => {
-        const senderId = message.senderId === user?.id ? message.receiverId : message.senderId;
-        const existingContactIndex = prevContacts.findIndex(c => c.id === senderId);
+        const targetId = message.groupId ? message.groupId : (message.senderId === user?.id ? message.receiverId : message.senderId);
+        const existingContactIndex = prevContacts.findIndex(c => c.id === targetId);
         
         if (existingContactIndex === -1) {
-          // If the sender is not in our contacts, add them dynamically
-          const isSelected = senderId === selectedContact?.id;
+          // If the sender/group is not in our contacts, add them dynamically
+          const isSelected = targetId === selectedContact?.id;
           const newContact = {
-            id: senderId,
-            name: "Unknown Contact",
+            id: targetId,
+            name: message.groupId ? "Unknown Group" : "Unknown Contact",
             mobile: "Unknown",
             isOnline: false,
+            isGroup: !!message.groupId,
             lastMessage: message.content,
             unreadCount: isSelected ? 0 : 1,
           };
@@ -167,7 +197,7 @@ export default function MainPage() {
 
         if (!isSelected && message.senderId !== user?.id) {
           if (Notification.permission === "granted") {
-            new Notification(`New message from ${contact.name}`, {
+            new Notification(message.groupId ? `New message in ${contact.name}` : `New message from ${contact.name}`, {
               body: message.content,
               icon: contact.avatar,
             });
