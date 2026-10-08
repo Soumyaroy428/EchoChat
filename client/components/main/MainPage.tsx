@@ -178,10 +178,21 @@ export default function MainPage() {
       });
     };
 
+    const handleUserStatus = (data: { userId: string, isOnline: boolean, lastSeen: string }) => {
+      setContacts((prevContacts) => prevContacts.map(c => 
+        c.id === data.userId ? { ...c, isOnline: data.isOnline, lastSeen: data.lastSeen } : c
+      ));
+      if (selectedContact?.id === data.userId) {
+        setSelectedContact(prev => prev ? { ...prev, isOnline: data.isOnline, lastSeen: data.lastSeen } : prev);
+      }
+    };
+
     socket.on("message_received", handleMessage);
+    socket.on("user_status", handleUserStatus);
 
     return () => {
       socket.off("message_received", handleMessage);
+      socket.off("user_status", handleUserStatus);
       // We do not call socket.disconnect() here so it remains connected across re-renders!
     };
   }, [token, selectedContact?.id, user?.id]);

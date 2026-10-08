@@ -162,7 +162,7 @@ export default function AuthPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Enter password"
+                  placeholder="Enter password (min 6 characters)"
                   required
                   minLength={6}
                   className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"

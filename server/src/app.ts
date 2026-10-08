@@ -92,6 +92,7 @@ io.on("connection", async (socket) => {
   // Set user as online and mark delivered
   try {
     await User.findByIdAndUpdate(userId, { isOnline: true });
+    io.emit("user_status", { userId, isOnline: true, lastSeen: new Date() });
     
     // Mark pending messages as delivered
     const undelivered = await MessageHistory.find({ receiverId: userId, status: "sent" });
@@ -116,10 +117,12 @@ io.on("connection", async (socket) => {
     const sockets = await io.in(`user:${userId}`).fetchSockets();
     if (sockets.length === 0) {
       try {
+        const lastSeen = new Date();
         await User.findByIdAndUpdate(userId, { 
           isOnline: false, 
-          lastSeen: new Date() 
+          lastSeen: lastSeen 
         });
+        io.emit("user_status", { userId, isOnline: false, lastSeen: lastSeen });
       } catch (err) {
         console.error("Error updating offline status:", err);
       }
