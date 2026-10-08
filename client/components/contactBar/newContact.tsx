@@ -10,6 +10,8 @@ type Contact = {
   avatar?: string;
   isOnline: boolean;
   lastSeen?: string;
+  isGroup?: boolean;
+  members?: string[];
 };
 
 type NewContactProps = {
