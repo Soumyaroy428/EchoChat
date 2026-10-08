@@ -48,10 +48,12 @@ import {
 type Contact = {
   id: string;
   name: string;
-  mobile: string;
+  mobile?: string;
   avatar?: string;
-  isOnline: boolean;
+  isOnline?: boolean;
   lastSeen?: string;
+  isGroup?: boolean;
+  members?: string[];
 };
 
 type CurrentUser = {
@@ -115,13 +117,14 @@ export default function ChatBar({
     const handleMessage = (message: {
       id?: string;
       senderId: string;
-      receiverId: string;
+      receiverId?: string;
+      groupId?: string;
       content: string;
       timestamp: string;
       mediaUrl?: string;
     }) => {
-      const otherUserId = message.senderId === currentUser?.id ? message.receiverId : message.senderId;
-      if (!selectedContact || selectedContact.id !== otherUserId) {
+      const targetId = message.groupId ? message.groupId : (message.senderId === currentUser?.id ? message.receiverId : message.senderId);
+      if (!selectedContact || selectedContact.id !== targetId) {
         return;
       }
 

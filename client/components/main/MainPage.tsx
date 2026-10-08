@@ -233,7 +233,7 @@ export default function MainPage() {
     return contacts.filter(
       (contact) =>
         contact.name.toLowerCase().includes(query) ||
-        contact.mobile.toLowerCase().includes(query)
+        contact.mobile?.toLowerCase().includes(query)
     );
   }, [contacts, searchTerm]);
 

@@ -1,6 +1,18 @@
 import { Request, Response } from "express";
 import Group from "../models/Group";
 import User from "../models/User";
+import NewContact from "../models/newContact";
+
+const resolveUserId = async (id: string) => {
+  const user = await User.findById(id).select("_id mobile");
+  if (user) return user._id.toString();
+
+  const contact = await NewContact.findById(id).select("mobile");
+  if (!contact) return null;
+
+  const contactUser = await User.findOne({ mobile: contact.mobile }).select("_id");
+  return contactUser ? contactUser._id.toString() : null;
+};
 
 export const createGroup = async (req: Request, res: Response) => {
   try {
@@ -11,8 +23,17 @@ export const createGroup = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Group name and members array are required." });
     }
 
+    const resolvedMembers: string[] = [];
+    for (const memberId of members) {
+      const resolved = await resolveUserId(memberId);
+      if (!resolved) {
+        return res.status(400).json({ error: `Cannot resolve contact ${memberId} to a registered user.` });
+      }
+      resolvedMembers.push(resolved);
+    }
+
     // Ensure the creator is in the members list
-    const allMembers = Array.from(new Set([...members, userId]));
+    const allMembers = Array.from(new Set([...resolvedMembers, userId]));
 
     const group = await Group.create({
       name,

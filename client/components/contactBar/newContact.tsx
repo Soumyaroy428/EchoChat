@@ -132,7 +132,8 @@ export default function NewContact({
         // Just reload window to fetch the new groups on mount for simplicity right now
         window.location.reload();
       } else {
-        alert("Failed to create group");
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to create group");
       }
     } catch (e) {
       console.error(e);

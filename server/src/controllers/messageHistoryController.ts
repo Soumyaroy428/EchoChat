@@ -3,6 +3,7 @@ import MessageHistory from "../models/messageHistory";
 import type { AuthRequest } from "../middleware/auth";
 import User from "../models/User";
 import NewContact from "../models/newContact";
+import Group from "../models/Group";
 
 const mapMessage = (message: any) => ({
   id: message._id?.toString() || message.id,
@@ -52,6 +53,10 @@ export const getMessageHistory = async (req: AuthRequest, res: Response) => {
 
     let messages;
     if (isGroupQuery) {
+      const group = await Group.findById(contactId);
+      if (!group || !group.members.includes(currentUserId)) {
+        return res.status(403).json({ error: "Forbidden: Not a member of this group" });
+      }
       messages = await MessageHistory.find({ groupId: contactId }).sort({ timestamp: 1 });
     } else {
       const participantIds = await getConversationIds(contactId);
@@ -85,6 +90,10 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
 
     let message;
     if (groupId) {
+      const group = await Group.findById(groupId);
+      if (!group || !group.members.includes(currentUserId)) {
+        return res.status(403).json({ error: "Forbidden: Not a member of this group" });
+      }
       message = await MessageHistory.create({
         senderId: currentUserId,
         groupId,
