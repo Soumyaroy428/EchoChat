@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import AuthImage from "./AuthImage";
 import { socket } from "../../lib/socket";
 import {
   MessageCircle,
@@ -683,7 +684,7 @@ export default function ChatBar({
                       <div className="flex items-start gap-2">
                         <div className="flex flex-col min-w-0 flex-1">
                           {message.mediaUrl && (
-                            <img src={message.mediaUrl} alt="media" className="max-w-[200px] sm:max-w-[250px] rounded-lg mb-2 object-cover" />
+                            <AuthImage src={message.mediaUrl} alt="media" className="max-w-[200px] sm:max-w-[250px] rounded-lg mb-2 object-cover" />
                           )}
                           {message.content && (
                             <p className="break-words">

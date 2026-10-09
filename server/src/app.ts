@@ -10,6 +10,7 @@ import bodyParser from "body-parser";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import path from "node:path";
+import fs from "fs";
 import jwt from "jsonwebtoken";
 import MessageHistory from "./models/messageHistory";
 import User from "./models/User";
@@ -82,7 +83,76 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
+// Serve media files securely
+app.get("/uploads/chat_media/:filename", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+    const token = authHeader.split(" ")[1];
+    let userId: string;
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId?: string };
+      if (!decoded.userId) throw new Error("Invalid token");
+      userId = decoded.userId;
+    } catch {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+
+    const { filename } = req.params;
+    
+    // Find message with this media
+    const message = await MessageHistory.findOne({ mediaUrl: { $regex: filename } });
+    if (!message) {
+      // If no message found, the file might be abandoned or not saved yet.
+      // Deny access unless it's a very recently uploaded file? 
+      // Actually, since it's uploaded via /upload and immediately attached to a message,
+      // it should exist. If it doesn't, we can default to denying for security.
+      return res.status(404).json({ error: "Media not found" });
+    }
+
+    // Check authorization
+    let authorized = false;
+    if (message.groupId) {
+      const group = await Group.findById(message.groupId);
+      if (group && group.members.includes(userId)) {
+        authorized = true;
+      }
+    } else {
+      if (message.senderId === userId) authorized = true;
+      else {
+        // We need to resolve receiverId
+        const resolveUserIdInner = async (id: string) => {
+          const user = await User.findById(id).select("_id mobile");
+          if (user) return user._id.toString();
+          const contact = await NewContact.findById(id).select("mobile");
+          if (!contact) return id;
+          const contactUser = await User.findOne({ mobile: contact.mobile }).select("_id");
+          return contactUser?._id.toString() || id;
+        };
+        const canonicalReceiver = await resolveUserIdInner(message.receiverId || "");
+        if (canonicalReceiver === userId) authorized = true;
+        // Check if current user is the original NewContact ID
+        if (message.receiverId === userId) authorized = true;
+      }
+    }
+
+    if (!authorized) {
+      return res.status(403).json({ error: "Forbidden: You don't have access to this media" });
+    }
+
+    const filePath = path.join(process.cwd(), "uploads", "chat_media", filename);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: "File not found on disk" });
+    }
+
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error("Media secure route error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 app.get("/", (req, res) => {
   res.send("EchoChat API Running 🚀");

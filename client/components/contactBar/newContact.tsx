@@ -6,10 +6,12 @@ import { ArrowLeft, Grid } from "lucide-react";
 type Contact = {
   id: string;
   name: string;
-  mobile: string;
+  mobile?: string;
   avatar?: string;
-  isOnline: boolean;
+  isOnline?: boolean;
   lastSeen?: string;
+  lastMessage?: string;
+  unreadCount?: number;
   isGroup?: boolean;
   members?: string[];
 };
