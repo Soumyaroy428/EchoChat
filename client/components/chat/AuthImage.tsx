@@ -58,3 +58,4 @@ export default function AuthImage({ src, ...props }: AuthImageProps) {
 
   return <img src={objectUrl} {...props} />;
 }
+

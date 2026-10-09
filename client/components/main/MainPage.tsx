@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { socket } from "../../lib/socket";
+import { subscribeToPushNotifications } from "../../lib/push";
 import Side from "../sidebar/side";
 import UserProfileEdit from "../sidebar/userProfileEdit";
 import ContactBar from "../contactBar/contact";
@@ -63,9 +64,10 @@ export default function MainPage() {
 
     const fetchProfile = async () => {
       setLoading(true);
-      if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission();
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js").catch(console.error);
       }
+      subscribeToPushNotifications();
       try {
         const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },

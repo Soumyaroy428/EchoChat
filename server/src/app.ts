@@ -6,6 +6,7 @@ import contactRoutes from "./routes/contactRoutes";
 import groupRoutes from "./routes/groupRoutes";
 import messageHistoryRoutes from "./routes/messageHistoryRoutes";
 import mediaRoutes from "./routes/mediaRoutes";
+import notificationRoutes from "./routes/notificationRoutes";
 import bodyParser from "body-parser";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
@@ -13,6 +14,7 @@ import path from "node:path";
 import fs from "fs";
 import jwt from "jsonwebtoken";
 import MessageHistory from "./models/messageHistory";
+import { sendPushNotificationToUser } from "./utils/push";
 import User from "./models/User";
 import NewContact from "./models/newContact";
 import Group from "./models/Group";
@@ -280,6 +282,21 @@ io.on("connection", async (socket) => {
           io.to(memberRooms).emit("message_received", mappedMessage);
           acknowledge({ message: mappedMessage });
 
+          // Send push notifications to offline group members
+          const sender = await User.findById(userId).select("name mobile");
+          const senderName = sender?.name || sender?.mobile || "Someone";
+          group.members.forEach(memberId => {
+            if (memberId !== userId) {
+              sendPushNotificationToUser(memberId, {
+                title: `${group.name}`,
+                body: `${senderName}: ${content.trim() || 'Sent an attachment'}`,
+                icon: "/icon-192.png",
+                badge: "/icon-192.png",
+                data: { url: `/?groupId=${groupId}` }
+              });
+            }
+          });
+
         } else if (receiverId) {
           const canonicalReceiverId = await resolveUserId(receiverId);
           const message = await MessageHistory.create({
@@ -296,6 +313,17 @@ io.on("connection", async (socket) => {
             mappedMessage,
           );
           acknowledge({ message: mappedMessage });
+
+          // Send push notification to direct receiver
+          const sender = await User.findById(userId).select("name mobile");
+          const senderName = sender?.name || sender?.mobile || "Someone";
+          sendPushNotificationToUser(canonicalReceiverId, {
+            title: senderName,
+            body: content.trim() || 'Sent an attachment',
+            icon: "/icon-192.png",
+            badge: "/icon-192.png",
+            data: { url: `/?contactId=${canonicalReceiverId}` }
+          });
         }
       } catch (error) {
         console.error("Socket message error:", error);
@@ -310,6 +338,7 @@ app.use("/api/contacts", contactRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/messages", messageHistoryRoutes);
 app.use("/api/media", mediaRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 export { server };
 export default app;
