@@ -37,6 +37,9 @@ import {
   ChevronDown,
   Check,
   CheckCheck,
+  Mic,
+  Square,
+  MapPin
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -82,6 +85,8 @@ type Message = {
   isMedia?: boolean;
   status?: "sent" | "delivered" | "read";
   mediaUrl?: string;
+  messageType?: "text" | "image" | "audio" | "file" | "location" | "video";
+  metadata?: any;
 };
 
 export default function ChatBar({
@@ -96,6 +101,10 @@ export default function ChatBar({
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const socketRef = useRef(socket);
@@ -125,6 +134,8 @@ export default function ChatBar({
       content: string;
       timestamp: string;
       mediaUrl?: string;
+      messageType?: "text" | "image" | "audio" | "file" | "location" | "video";
+      metadata?: any;
     }) => {
       const targetId = message.groupId ? message.groupId : (message.senderId === currentUser?.id ? message.receiverId : message.senderId);
       if (!selectedContact || selectedContact.id !== targetId) {
@@ -142,6 +153,8 @@ export default function ChatBar({
             time: formatTime(message.timestamp),
             status: message.senderId === currentUser.id ? "sent" : "read",
             mediaUrl: message.mediaUrl,
+            messageType: message.messageType,
+            metadata: message.metadata,
           },
         ];
       });
@@ -229,6 +242,8 @@ export default function ChatBar({
           time: formatTime(new Date(message.timestamp || Date.now())),
           status: message.status || "sent",
           mediaUrl: message.mediaUrl,
+          messageType: message.messageType,
+          metadata: message.metadata,
         }));
 
         setMessages((previous) => {
@@ -283,6 +298,78 @@ export default function ChatBar({
       setMessages((prev) => prev.filter((m) => m.id !== messageId));
       socketRef.current.emit("message_deleted", { messageId, receiverId: selectedContact?.id });
     } catch (e) { console.error(e); }
+  };
+
+  const sendLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        if (!selectedContact) return;
+        const payload = selectedContact.isGroup
+          ? { groupId: selectedContact.id, content: "Live Location", messageType: "location", metadata: { lat: latitude, lng: longitude } }
+          : { receiverId: selectedContact.id, content: "Live Location", messageType: "location", metadata: { lat: latitude, lng: longitude } };
+        socketRef.current.emit("send_message", payload, () => {});
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        alert("Unable to retrieve your location. Please check your permissions.");
+      }
+    );
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        if (!selectedContact) return;
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        stream.getTracks().forEach(track => track.stop());
+        try {
+          const formData = new FormData();
+          formData.append("media", audioBlob, "voicenote.webm");
+          const token = localStorage.getItem("token");
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/media/upload`, {
+            method: "POST",
+            headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+            body: formData
+          });
+          if (!response.ok) throw new Error("Upload failed");
+          const data = await response.json();
+          
+          const payload = selectedContact.isGroup 
+            ? { groupId: selectedContact.id, mediaUrl: data.url, content: "Voice note", messageType: "audio", metadata: data.metadata }
+            : { receiverId: selectedContact.id, mediaUrl: data.url, content: "Voice note", messageType: "audio", metadata: data.metadata };
+          socketRef.current.emit("send_message", payload, () => {});
+        } catch (error) {
+          console.error("Failed to upload voice note", error);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Failed to start recording:", error);
+      alert("Please allow microphone permissions to record voice notes.");
+    }
   };
 
   // Send message
@@ -692,12 +779,45 @@ export default function ChatBar({
                       <div className="flex items-start gap-2">
                         <div className="flex flex-col min-w-0 flex-1">
                           {message.mediaUrl && (
-                            <AuthImage src={message.mediaUrl} alt="media" className="max-w-[200px] sm:max-w-[250px] rounded-lg mb-2 object-cover" />
+                            <div className="mb-2">
+                              {message.messageType === "audio" ? (
+                                <audio controls className="max-w-[200px] sm:max-w-[250px] h-10">
+                                  <source src={message.mediaUrl} />
+                                </audio>
+                              ) : message.messageType === "video" ? (
+                                <video controls className="max-w-[200px] sm:max-w-[250px] rounded-lg object-cover">
+                                  <source src={message.mediaUrl} />
+                                </video>
+                              ) : message.messageType === "file" ? (
+                                <a href={message.mediaUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 bg-black/20 rounded-lg text-white hover:bg-black/30 transition">
+                                  <Paperclip size={24} />
+                                  <div className="flex flex-col overflow-hidden">
+                                    <span className="truncate font-medium">{message.metadata?.originalname || "Download file"}</span>
+                                    {message.metadata?.size && <span className="text-xs text-white/70">{(message.metadata.size / 1024).toFixed(1)} KB</span>}
+                                  </div>
+                                </a>
+                              ) : (
+                                <AuthImage src={message.mediaUrl} alt="media" className="max-w-[200px] sm:max-w-[250px] rounded-lg object-cover" />
+                              )}
+                            </div>
                           )}
-                          {message.content && (
+                          {message.content && message.messageType !== "audio" && message.messageType !== "video" && message.messageType !== "file" && message.messageType !== "location" && (
                             <p className="break-words">
                               {message.content}
                             </p>
+                          )}
+                          {message.messageType === "location" && message.metadata?.lat && message.metadata?.lng && (
+                            <div className="flex flex-col gap-2">
+                              <div className="flex items-center gap-2 p-3 bg-black/20 rounded-lg text-white">
+                                <MapPin size={24} className="text-red-500" />
+                                <div>
+                                  <span className="font-medium block">Live Location</span>
+                                  <a href={`https://www.google.com/maps?q=${message.metadata.lat},${message.metadata.lng}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:underline">
+                                    View on Maps
+                                  </a>
+                                </div>
+                              </div>
+                            </div>
                           )}
                         </div>
 
@@ -795,7 +915,6 @@ export default function ChatBar({
                 {/* Attach */}
                 <input
                   type="file"
-                  accept="image/*,video/*"
                   className="hidden"
                   id="media-upload"
                   onChange={async (e) => {
@@ -812,9 +931,15 @@ export default function ChatBar({
                       });
                       if (!response.ok) throw new Error("Upload failed");
                       const data = await response.json();
+                      
+                      let messageType = "file";
+                      if (file.type.startsWith("image/")) messageType = "image";
+                      else if (file.type.startsWith("video/")) messageType = "video";
+                      else if (file.type.startsWith("audio/")) messageType = "audio";
+
                       const payload = selectedContact.isGroup 
-                        ? { groupId: selectedContact.id, mediaUrl: data.url, content: "" }
-                        : { receiverId: selectedContact.id, mediaUrl: data.url, content: "" };
+                        ? { groupId: selectedContact.id, mediaUrl: data.url, content: file.name, messageType, metadata: data.metadata }
+                        : { receiverId: selectedContact.id, mediaUrl: data.url, content: file.name, messageType, metadata: data.metadata };
                       socketRef.current.emit("send_message", payload, () => {});
                     } catch (error) { console.error(error); }
                     e.target.value = "";
@@ -827,6 +952,15 @@ export default function ChatBar({
                   onClick={() => document.getElementById("media-upload")?.click()}
                 >
                   <Paperclip size={18} />
+                </button>
+
+                <button
+                  type="button"
+                  className="rounded-full p-2 text-gray-400 transition hover:bg-white/5 hover:text-white"
+                  aria-label="Send location"
+                  onClick={sendLocation}
+                >
+                  <MapPin size={18} />
                 </button>
 
                 {/* Emoji */}
@@ -854,14 +988,25 @@ export default function ChatBar({
                   className="flex-1 bg-transparent outline-none placeholder:text-gray-500"
                 />
 
-                {/* Send */}
-                <button
-                  type="submit"
-                  className="rounded-full bg-[#0d6b50] p-3 text-white transition hover:bg-[#109e72]"
-                  aria-label="Send message"
-                >
-                  <Send size={18} />
-                </button>
+                {/* Send or Record */}
+                {newMessage.trim() ? (
+                  <button
+                    type="submit"
+                    className="rounded-full bg-[#0d6b50] p-3 text-white transition hover:bg-[#109e72]"
+                    aria-label="Send message"
+                  >
+                    <Send size={18} />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => isRecording ? stopRecording() : startRecording()}
+                    className={`rounded-full p-3 text-white transition ${isRecording ? "bg-red-500 animate-pulse" : "bg-[#0d6b50] hover:bg-[#109e72]"}`}
+                    aria-label="Record voice note"
+                  >
+                    {isRecording ? <Square size={18} /> : <Mic size={18} />}
+                  </button>
+                )}
               </form>
             </div>
           </>

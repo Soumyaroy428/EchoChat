@@ -9,7 +9,14 @@ export const uploadMedia = async (req: Request, res: Response) => {
 
     const url = `${req.protocol}://${req.get("host")}/uploads/chat_media/${file.filename}`;
     
-    return res.status(201).json({ url });
+    return res.status(201).json({
+      url,
+      metadata: {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size
+      }
+    });
   } catch (error) {
     console.error("Upload media error:", error);
     return res.status(500).json({ error: "Internal server error" });

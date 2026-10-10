@@ -31,6 +31,15 @@ const messageHistorySchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  messageType: {
+    type: String,
+    enum: ["text", "image", "audio", "file", "location"],
+    default: "text",
+  },
+  metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {},
+  },
 });
 
 export default mongoose.model("MessageHistory", messageHistorySchema);
