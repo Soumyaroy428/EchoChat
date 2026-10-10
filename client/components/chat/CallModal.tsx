@@ -19,10 +19,10 @@ export default function CallModal({ currentUser, callData, contactToCall, isVide
 
   const myVideo = useRef<HTMLVideoElement>(null);
   const userVideo = useRef<HTMLVideoElement>(null);
-  const connectionRef = useRef<any>();
-  const streamRef = useRef<MediaStream>();
+  const connectionRef = useRef<any>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const isCancelled = useRef(false);
-  const callIdRef = useRef(callData?.callId || crypto.randomUUID());
+  const callIdRef = useRef<string>(callData?.callId || crypto.randomUUID());
 
   useEffect(() => {
     isCancelled.current = false;

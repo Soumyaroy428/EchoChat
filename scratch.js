@@ -96,3 +96,4 @@ const newWebRTC = `  // WebRTC Signaling
 content = content.replace(oldWebRTC, newWebRTC);
 fs.writeFileSync(appPath, content);
 console.log('Done replacing app.ts');
+
