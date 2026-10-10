@@ -160,6 +160,8 @@ app.get("/", (req, res) => {
   res.send("EchoChat API Running 🚀");
 });
 
+const activeCalls = new Map<string, { participants: Set<string> }>();
+
 io.on("connection", async (socket) => {
   const userId = socket.data.userId as string;
   socket.join(`user:${userId}`);

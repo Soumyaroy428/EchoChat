@@ -453,24 +453,28 @@ export default function ChatBar({
         {/* Header buttons */}
         <div className="flex items-center gap-3 text-gray-400">
           {/* Phone call */}
-          <button
-            type="button"
-            className="rounded-full bg-white/5 p-2 transition hover:bg-white/10"
-            aria-label="Phone call"
-            onClick={() => selectedContact && onCallContact && onCallContact(selectedContact, false)}
-          >
-            <Phone size={20} />
-          </button>
+          {!selectedContact?.isGroup && (
+            <button
+              type="button"
+              className="rounded-full bg-white/5 p-2 transition hover:bg-white/10"
+              aria-label="Phone call"
+              onClick={() => selectedContact && !selectedContact.isGroup && onCallContact && onCallContact(selectedContact, false)}
+            >
+              <Phone size={20} />
+            </button>
+          )}
 
           {/* Video call */}
-          <button
-            type="button"
-            className="rounded-full bg-white/5 p-2 transition hover:bg-white/10"
-            aria-label="Video call"
-            onClick={() => selectedContact && onCallContact && onCallContact(selectedContact, true)}
-          >
-            <Video size={20} />
-          </button>
+          {!selectedContact?.isGroup && (
+            <button
+              type="button"
+              className="rounded-full bg-white/5 p-2 transition hover:bg-white/10"
+              aria-label="Video call"
+              onClick={() => selectedContact && !selectedContact.isGroup && onCallContact && onCallContact(selectedContact, true)}
+            >
+              <Video size={20} />
+            </button>
+          )}
 
           {/* Search */}
           <button

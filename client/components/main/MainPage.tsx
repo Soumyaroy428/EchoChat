@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { socket } from "../../lib/socket";
 import { subscribeToPushNotifications } from "../../lib/push";
 import Side from "../sidebar/side";
@@ -58,6 +58,9 @@ export default function MainPage() {
   // Call States
   const [callData, setCallData] = useState<any>(null); // Incoming call info
   const [isCalling, setIsCalling] = useState(false);
+  const isCallingRef = useRef(isCalling);
+  useEffect(() => { isCallingRef.current = isCalling; }, [isCalling]);
+
   const [contactToCall, setContactToCall] = useState<Contact | null>(null);
   const [isVideoCall, setIsVideoCall] = useState(false);
 
@@ -227,12 +230,19 @@ export default function MainPage() {
     };
 
     const handleIncomingCall = (data: any) => {
+      if (isCallingRef.current) {
+        // Automatically reject if already in a call
+        socket.emit("reject_call", { callId: data.callId, reason: "busy" });
+        return;
+      }
+      
       setCallData({
         isReceivingCall: true,
         from: data.from,
         name: data.name,
         signal: data.signal,
-        isVideo: data.isVideo
+        isVideo: data.isVideo,
+        callId: data.callId
       });
       setIsCalling(true);
     };

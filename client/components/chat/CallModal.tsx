@@ -20,52 +20,84 @@ export default function CallModal({ currentUser, callData, contactToCall, isVide
   const myVideo = useRef<HTMLVideoElement>(null);
   const userVideo = useRef<HTMLVideoElement>(null);
   const connectionRef = useRef<any>();
+  const streamRef = useRef<MediaStream>();
+  const isCancelled = useRef(false);
+  const callIdRef = useRef(callData?.callId || crypto.randomUUID());
 
   useEffect(() => {
+    isCancelled.current = false;
     // Get user media
     navigator.mediaDevices
       .getUserMedia({ video: isVideoCall || callData?.isVideo, audio: true })
       .then((currentStream) => {
-        setStream(currentStream);
-        if (myVideo.current) {
-          myVideo.current.srcObject = currentStream;
+        if (isCancelled.current) {
+          // If modal was closed before we got the stream, stop it immediately
+          currentStream.getTracks().forEach(track => track.stop());
+          return;
         }
+        setStream(currentStream);
+        streamRef.current = currentStream;
       })
       .catch((err) => {
         console.error("Failed to get media permissions", err);
         alert("Please allow camera and microphone permissions.");
-        onClose();
+        if (!isCancelled.current) {
+           onClose();
+        }
       });
 
-    socket.on("call_accepted", (signal) => {
+    const handleCallAccepted = (data: any) => {
+      // Validate callId
+      if (data.callId && data.callId !== callIdRef.current) return;
       setCallAccepted(true);
       if (connectionRef.current) {
-        connectionRef.current.signal(signal);
+        connectionRef.current.signal(data.signal || data);
       }
-    });
+    };
 
-    socket.on("call_rejected", () => {
+    const handleCallRejected = (data: any) => {
+      if (data && data.callId && data.callId !== callIdRef.current) return;
       setCallEnded(true);
       endCall();
-    });
+    };
 
-    socket.on("call_ended", () => {
+    const handleCallEnded = (data: any) => {
+      if (data && data.callId && data.callId !== callIdRef.current) return;
       setCallEnded(true);
       if (connectionRef.current) connectionRef.current.destroy();
       onClose();
-    });
+    };
+
+    socket.on("call_accepted", handleCallAccepted);
+    socket.on("call_rejected", handleCallRejected);
+    socket.on("call_ended", handleCallEnded);
 
     return () => {
-      socket.off("call_accepted");
-      socket.off("call_rejected");
-      socket.off("call_ended");
+      isCancelled.current = true;
+      socket.off("call_accepted", handleCallAccepted);
+      socket.off("call_rejected", handleCallRejected);
+      socket.off("call_ended", handleCallEnded);
+      
+      // Stop tracks on cleanup
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
     };
   }, []);
+
+  // Sync stream to video element
+  useEffect(() => {
+    if (stream && myVideo.current) {
+      myVideo.current.srcObject = stream;
+    }
+  }, [stream]);
 
   // Initiate a call
   useEffect(() => {
     if (stream && contactToCall && !callData?.isReceivingCall) {
       import("simple-peer").then(({ default: Peer }) => {
+        if (isCancelled.current) return; // Do not leave peer active or emit call_user if cancelled
+        
         const peer = new Peer({
           initiator: true,
           trickle: false,
@@ -73,12 +105,14 @@ export default function CallModal({ currentUser, callData, contactToCall, isVide
         });
 
         peer.on("signal", (data) => {
+          if (isCancelled.current) return;
           socket.emit("call_user", {
             userToCall: contactToCall.id,
             signalData: data,
             from: currentUser.id,
             name: currentUser.name,
-            isVideo: isVideoCall
+            isVideo: isVideoCall,
+            callId: callIdRef.current
           });
         });
 
@@ -88,14 +122,23 @@ export default function CallModal({ currentUser, callData, contactToCall, isVide
           }
         });
 
+        peer.on("error", (err) => {
+          console.error("Peer error:", err);
+          endCall();
+        });
+
         connectionRef.current = peer;
       });
     }
   }, [stream, contactToCall]);
 
   const answerCall = () => {
+    if (!stream) return; // Prevent creating Peer before local media is ready
     setCallAccepted(true);
+    
     import("simple-peer").then(({ default: Peer }) => {
+      if (isCancelled.current) return;
+      
       const peer = new Peer({
         initiator: false,
         trickle: false,
@@ -103,13 +146,19 @@ export default function CallModal({ currentUser, callData, contactToCall, isVide
       });
 
       peer.on("signal", (data) => {
-        socket.emit("answer_call", { signal: data, to: callData.from });
+        if (isCancelled.current) return;
+        socket.emit("answer_call", { signal: data, to: callData.from, callId: callIdRef.current });
       });
 
       peer.on("stream", (currentStream) => {
         if (userVideo.current) {
           userVideo.current.srcObject = currentStream;
         }
+      });
+      
+      peer.on("error", (err) => {
+        console.error("Peer error:", err);
+        endCall();
       });
 
       peer.signal(callData.signal);
@@ -119,17 +168,18 @@ export default function CallModal({ currentUser, callData, contactToCall, isVide
 
   const endCall = () => {
     setCallEnded(true);
+    isCancelled.current = true;
     if (connectionRef.current) connectionRef.current.destroy();
     
     // Stop tracks
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
     }
 
     if (callData?.isReceivingCall) {
-      socket.emit("reject_call", { to: callData.from });
+      socket.emit("reject_call", { to: callData.from, callId: callIdRef.current });
     } else if (contactToCall) {
-      socket.emit("end_call", { to: contactToCall.id });
+      socket.emit("end_call", { to: contactToCall.id, callId: callIdRef.current });
     }
     
     onClose();
