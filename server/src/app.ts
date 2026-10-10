@@ -245,6 +245,40 @@ io.on("connection", async (socket) => {
     }
   });
 
+  // WebRTC Signaling
+  socket.on("call_user", async (data: { userToCall: string, signalData: any, name: string, isVideo: boolean }) => {
+    try {
+      const canonicalReceiverId = await resolveUserId(data.userToCall);
+      socket.to(`user:${canonicalReceiverId}`).emit("call_incoming", {
+        signal: data.signalData,
+        from: userId,
+        name: data.name,
+        isVideo: data.isVideo
+      });
+    } catch (e) { console.error(e); }
+  });
+
+  socket.on("answer_call", async (data: { to: string, signal: any }) => {
+    try {
+      const canonicalReceiverId = await resolveUserId(data.to);
+      socket.to(`user:${canonicalReceiverId}`).emit("call_accepted", data.signal);
+    } catch (e) { console.error(e); }
+  });
+
+  socket.on("end_call", async (data: { to: string }) => {
+    try {
+      const canonicalReceiverId = await resolveUserId(data.to);
+      socket.to(`user:${canonicalReceiverId}`).emit("call_ended");
+    } catch (e) { console.error(e); }
+  });
+
+  socket.on("reject_call", async (data: { to: string }) => {
+    try {
+      const canonicalReceiverId = await resolveUserId(data.to);
+      socket.to(`user:${canonicalReceiverId}`).emit("call_rejected");
+    } catch (e) { console.error(e); }
+  });
+
   socket.on(
     "send_message",
     async (

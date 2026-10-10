@@ -7,3 +7,4 @@ const router = Router();
 router.post("/subscribe", authenticate, subscribeToNotifications);
 
 export default router;
+

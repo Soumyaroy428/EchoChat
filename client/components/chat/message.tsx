@@ -71,6 +71,7 @@ type ChatBarProps = {
   currentUser: CurrentUser | null;
   onOpenContactInfo: () => void;
   onBack?: () => void;
+  onCallContact?: (contact: Contact, isVideo: boolean) => void;
 };
 
 type Message = {
@@ -88,6 +89,7 @@ export default function ChatBar({
   currentUser,
   onOpenContactInfo,
   onBack,
+  onCallContact,
 }: ChatBarProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -455,6 +457,7 @@ export default function ChatBar({
             type="button"
             className="rounded-full bg-white/5 p-2 transition hover:bg-white/10"
             aria-label="Phone call"
+            onClick={() => selectedContact && onCallContact && onCallContact(selectedContact, false)}
           >
             <Phone size={20} />
           </button>
@@ -464,6 +467,7 @@ export default function ChatBar({
             type="button"
             className="rounded-full bg-white/5 p-2 transition hover:bg-white/10"
             aria-label="Video call"
+            onClick={() => selectedContact && onCallContact && onCallContact(selectedContact, true)}
           >
             <Video size={20} />
           </button>

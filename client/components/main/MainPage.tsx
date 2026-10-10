@@ -8,6 +8,7 @@ import UserProfileEdit from "../sidebar/userProfileEdit";
 import ContactBar from "../contactBar/contact";
 import ChatBar from "../chat/message";
 import ContactInfoPanel from "../chat/ContactInfoPanel";
+import CallModal from "../chat/CallModal";
 
 type Contact = {
   id: string;
@@ -53,6 +54,12 @@ export default function MainPage() {
   const [isContactInfoOpen, setIsContactInfoOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Call States
+  const [callData, setCallData] = useState<any>(null); // Incoming call info
+  const [isCalling, setIsCalling] = useState(false);
+  const [contactToCall, setContactToCall] = useState<Contact | null>(null);
+  const [isVideoCall, setIsVideoCall] = useState(false);
 
   const token = localStorage.getItem("token");
 
@@ -219,12 +226,25 @@ export default function MainPage() {
       }
     };
 
+    const handleIncomingCall = (data: any) => {
+      setCallData({
+        isReceivingCall: true,
+        from: data.from,
+        name: data.name,
+        signal: data.signal,
+        isVideo: data.isVideo
+      });
+      setIsCalling(true);
+    };
+
     socket.on("message_received", handleMessage);
     socket.on("user_status", handleUserStatus);
+    socket.on("call_incoming", handleIncomingCall);
 
     return () => {
       socket.off("message_received", handleMessage);
       socket.off("user_status", handleUserStatus);
+      socket.off("call_incoming", handleIncomingCall);
       // We do not call socket.disconnect() here so it remains connected across re-renders!
     };
   }, [token, selectedContact?.id, user?.id]);
@@ -422,6 +442,11 @@ export default function MainPage() {
             selectedContact={selectedContact}
             currentUser={user}
             onOpenContactInfo={() => setIsContactInfoOpen(true)}
+            onCallContact={(contact, isVideo) => {
+              setContactToCall(contact);
+              setIsVideoCall(isVideo);
+              setIsCalling(true);
+            }}
             onBack={() => {
               setSelectedContact(null);
               setIsContactInfoOpen(false);
@@ -430,6 +455,20 @@ export default function MainPage() {
         </div>
 
       </div>
+      
+      {isCalling && (
+        <CallModal
+          currentUser={user}
+          callData={callData}
+          contactToCall={contactToCall}
+          isVideoCall={isVideoCall}
+          onClose={() => {
+            setIsCalling(false);
+            setCallData(null);
+            setContactToCall(null);
+          }}
+        />
+      )}
     </div>
   );
 }
