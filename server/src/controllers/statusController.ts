@@ -1,8 +1,11 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/auth";
 import Status from "../models/Status";
+import NewContact from "../models/newContact";
+import User from "../models/User";
 import { uploadMediaFile } from "../services/storageService";
 import mongoose from "mongoose";
+import { io } from "../app";
 
 export const createStatus = async (req: AuthRequest, res: Response) => {
   try {
@@ -18,7 +21,7 @@ export const createStatus = async (req: AuthRequest, res: Response) => {
       const uploadResult = await uploadMediaFile(req.file.path, "echochat/status");
       mediaUrl = uploadResult.isCloud
         ? uploadResult.url
-        : `${req.protocol}://${req.get("host")}${uploadResult.url}`;
+        : `${req.protocol}://${req.get("host")}/uploads/status/${req.file.filename}`;
       mediaType = req.file.mimetype.startsWith("video/") ? "video" : "image";
     }
 
@@ -42,6 +45,7 @@ export const createStatus = async (req: AuthRequest, res: Response) => {
       font: font || "sans-serif",
       expiresAt,
     });
+    io.emit("new_status");
 
     const populatedStatus = await Status.findById(newStatus._id).populate(
       "user",
@@ -67,11 +71,17 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
 
     const now = new Date();
 
+    const contacts = await NewContact.find({ ownerId: userId }).select("mobile");
+    const registeredContacts = await User.find({
+      mobile: { $in: contacts.map((contact) => contact.mobile) },
+    }).select("_id");
+    const visibleUserIds = [userId, ...registeredContacts.map((user) => user._id)];
+
     const activeStatuses = await Status.find({
       expiresAt: { $gt: now },
+      user: { $in: visibleUserIds },
     })
       .populate("user", "name mobile avatar")
-      .populate("viewers.user", "name mobile avatar")
       .sort({ createdAt: 1 });
 
     const myStatuses: any[] = [];
@@ -110,6 +120,11 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
         }
       }
     }
+
+    await Status.populate(myStatuses, {
+      path: "viewers.user",
+      select: "name mobile avatar",
+    });
 
     const contactStatuses = Array.from(contactMap.values()).sort((a, b) => {
       // Unviewed stories first, then by recency

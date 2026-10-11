@@ -95,3 +95,4 @@ export default function CallSection({ contacts, onStartCall }: CallSectionProps)
     </div>
   );
 }
+

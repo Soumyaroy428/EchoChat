@@ -161,7 +161,7 @@ app.get("/", (req, res) => {
   res.send("EchoChat API Running 🚀");
 });
 
-const activeCalls = new Map<string, { participants: Set<string> }>();
+const activeCalls = new Map<string, { participants: Set<string>; callerId: string }>();
 
 io.on("connection", async (socket) => {
   const userId = socket.data.userId as string;
@@ -248,39 +248,148 @@ io.on("connection", async (socket) => {
     }
   });
 
-  // WebRTC Signaling
-  socket.on("call_user", async (data: { userToCall: string, signalData: any, name: string, isVideo: boolean }) => {
-    try {
-      const canonicalReceiverId = await resolveUserId(data.userToCall);
-      socket.to(`user:${canonicalReceiverId}`).emit("call_incoming", {
-        signal: data.signalData,
-        from: userId,
-        name: data.name,
-        isVideo: data.isVideo
-      });
-    } catch (e) { console.error(e); }
-  });
+    // WebRTC Signaling with CallId Tracking
+  socket.on(
+    "call_user",
+    async (
+      data: {
+        userToCall: string;
+        signalData: any;
+        name: string;
+        isVideo: boolean;
+        callId?: string;
+      },
+      acknowledge?: (res: { callId: string }) => void
+    ) => {
+      try {
+        const canonicalReceiverId = await resolveUserId(data.userToCall);
+        const callId =
+          typeof data.callId === "string" &&
+          data.callId.trim().length > 0 &&
+          !activeCalls.has(data.callId.trim())
+            ? data.callId.trim()
+            : Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
 
-  socket.on("answer_call", async (data: { to: string, signal: any }) => {
-    try {
-      const canonicalReceiverId = await resolveUserId(data.to);
-      socket.to(`user:${canonicalReceiverId}`).emit("call_accepted", data.signal);
-    } catch (e) { console.error(e); }
-  });
+        activeCalls.set(callId, {
+          participants: new Set([userId, canonicalReceiverId]),
+          callerId: userId,
+        });
 
-  socket.on("end_call", async (data: { to: string }) => {
-    try {
-      const canonicalReceiverId = await resolveUserId(data.to);
-      socket.to(`user:${canonicalReceiverId}`).emit("call_ended");
-    } catch (e) { console.error(e); }
-  });
+        if (typeof acknowledge === "function") {
+          acknowledge({ callId });
+        }
 
-  socket.on("reject_call", async (data: { to: string }) => {
-    try {
-      const canonicalReceiverId = await resolveUserId(data.to);
-      socket.to(`user:${canonicalReceiverId}`).emit("call_rejected");
-    } catch (e) { console.error(e); }
-  });
+        socket.to(`user:${canonicalReceiverId}`).emit("call_incoming", {
+          callId,
+          signal: data.signalData,
+          from: userId,
+          name: data.name,
+          isVideo: data.isVideo,
+        });
+      } catch (e) {
+        console.error("call_user error:", e);
+      }
+    }
+  );
+
+  socket.on(
+    "answer_call",
+    async (data: { callId?: string; signal: any; to?: string }) => {
+      try {
+        if (data.callId) {
+          const call = activeCalls.get(data.callId);
+          if (call && call.participants.has(userId)) {
+            const otherParticipant = Array.from(call.participants).find(
+              (id) => id !== userId
+            );
+            if (otherParticipant) {
+              socket.to(`user:${otherParticipant}`).emit("call_accepted", {
+                signal: data.signal,
+                callId: data.callId,
+              });
+              return;
+            }
+          }
+        }
+
+        if (data.to) {
+          const canonicalReceiverId = await resolveUserId(data.to);
+          socket.to(`user:${canonicalReceiverId}`).emit("call_accepted", {
+            signal: data.signal,
+            callId: data.callId,
+          });
+        }
+      } catch (e) {
+        console.error("answer_call error:", e);
+      }
+    }
+  );
+
+  socket.on(
+    "end_call",
+    async (data: { callId?: string; to?: string }) => {
+      try {
+        if (data.callId) {
+          const call = activeCalls.get(data.callId);
+          if (call && call.participants.has(userId)) {
+            const otherParticipant = Array.from(call.participants).find(
+              (id) => id !== userId
+            );
+            if (otherParticipant) {
+              socket.to(`user:${otherParticipant}`).emit("call_ended", {
+                callId: data.callId,
+              });
+            }
+            activeCalls.delete(data.callId);
+            return;
+          }
+        }
+
+        if (data.to) {
+          const canonicalReceiverId = await resolveUserId(data.to);
+          socket.to(`user:${canonicalReceiverId}`).emit("call_ended", {
+            callId: data.callId,
+          });
+        }
+      } catch (e) {
+        console.error("end_call error:", e);
+      }
+    }
+  );
+
+  socket.on(
+    "reject_call",
+    async (data: { callId?: string; to?: string; reason?: string }) => {
+      try {
+        if (data.callId) {
+          const call = activeCalls.get(data.callId);
+          if (call) {
+            const otherParticipant =
+              Array.from(call.participants).find((id) => id !== userId) ||
+              call.callerId;
+            if (otherParticipant) {
+              socket.to(`user:${otherParticipant}`).emit("call_rejected", {
+                callId: data.callId,
+                reason: data.reason || "rejected",
+              });
+            }
+            activeCalls.delete(data.callId);
+            return;
+          }
+        }
+
+        if (data.to) {
+          const canonicalReceiverId = await resolveUserId(data.to);
+          socket.to(`user:${canonicalReceiverId}`).emit("call_rejected", {
+            callId: data.callId,
+            reason: data.reason || "rejected",
+          });
+        }
+      } catch (e) {
+        console.error("reject_call error:", e);
+      }
+    }
+  );
 
   socket.on(
     "send_message",

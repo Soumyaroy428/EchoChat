@@ -37,7 +37,7 @@ type StatusViewerModalProps = {
   stories: StatusItem[];
   initialIndex?: number;
   isOwner?: boolean;
-  onDeleteStatus?: (statusId: string) => void;
+  onDeleteStatus?: (statusId: string) => Promise<boolean>;
   currentUserId?: string;
 };
 
@@ -143,7 +143,7 @@ export default function StatusViewerModal({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isOpen, isPaused, showViewers, currentIndex, handleNext]);
+  }, [isOpen, isPaused, showViewers, currentIndex, currentStory?._id, handleNext]);
 
   const togglePause = () => {
     if (isPaused) {
@@ -178,14 +178,23 @@ export default function StatusViewerModal({
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!currentStory || !onDeleteStatus) return;
     if (window.confirm("Are you sure you want to delete this status update?")) {
-      onDeleteStatus(currentStory._id);
+      const deleted = await onDeleteStatus(currentStory._id);
+      if (!deleted) return;
+
       if (stories.length <= 1) {
         onClose();
+      } else if (currentIndex < stories.length - 1) {
+        setProgress(0);
+        elapsedBeforePauseRef.current = 0;
+        setShowViewers(false);
       } else {
-        handleNext();
+        setCurrentIndex((prev) => prev - 1);
+        setProgress(0);
+        elapsedBeforePauseRef.current = 0;
+        setShowViewers(false);
       }
     }
   };

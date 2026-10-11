@@ -106,14 +106,22 @@ export default function CallModal({ currentUser, callData, contactToCall, isVide
 
         peer.on("signal", (data) => {
           if (isCancelled.current) return;
-          socket.emit("call_user", {
-            userToCall: contactToCall.id,
-            signalData: data,
-            from: currentUser.id,
-            name: currentUser.name,
-            isVideo: isVideoCall,
-            callId: callIdRef.current
-          });
+          socket.emit(
+            "call_user",
+            {
+              userToCall: contactToCall.id,
+              signalData: data,
+              from: currentUser.id,
+              name: currentUser.name,
+              isVideo: isVideoCall,
+              callId: callIdRef.current,
+            },
+            (res?: { callId?: string }) => {
+              if (res?.callId) {
+                callIdRef.current = res.callId;
+              }
+            }
+          );
         });
 
         peer.on("stream", (currentStream) => {

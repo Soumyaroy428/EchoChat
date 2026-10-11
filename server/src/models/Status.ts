@@ -77,3 +77,4 @@ const statusSchema = new Schema(
 );
 
 export default mongoose.model<IStatus>("Status", statusSchema);
+

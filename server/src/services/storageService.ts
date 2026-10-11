@@ -58,8 +58,9 @@ export async function uploadMediaFile(
 
   // Fallback: Local storage
   const filename = path.basename(filePath);
+  const uploadDirectory = folder === "echochat/status" ? "status" : "chat_media";
   return {
-    url: `/uploads/chat_media/${filename}`,
+    url: `/uploads/${uploadDirectory}/${filename}`,
     isCloud: false,
   };
 }

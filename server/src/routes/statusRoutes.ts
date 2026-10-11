@@ -39,3 +39,4 @@ router.post("/:statusId/view", authenticate, viewStatus);
 router.delete("/:statusId", authenticate, deleteStatus);
 
 export default router;
+

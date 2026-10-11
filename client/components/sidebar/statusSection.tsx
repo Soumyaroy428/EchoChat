@@ -79,7 +79,7 @@ export default function StatusSection({
     };
   }, [fetchStatuses]);
 
-  const handleDeleteStatus = async (statusId: string) => {
+  const handleDeleteStatus = async (statusId: string): Promise<boolean> => {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
@@ -92,10 +92,16 @@ export default function StatusSection({
         }
       );
       if (res.ok) {
+        setActiveViewerStories((stories) =>
+          stories?.filter((story) => story._id !== statusId) ?? null
+        );
         fetchStatuses();
+        return true;
       }
+      return false;
     } catch (err) {
       console.error("Failed to delete status:", err);
+      return false;
     }
   };
 

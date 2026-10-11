@@ -9,3 +9,5 @@ build/
 *.tsbuildinfo
 server/uploads/
 *.log
+.vercel
+.env*

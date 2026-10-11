@@ -417,8 +417,10 @@ export default function MainPage() {
             hasActiveChat={!!selectedContact}
             activeTab={activeTab}
             onTabChange={(tab) => {
-              setActiveTab(tab);
-              setIsProfileOpen(tab === "profile");
+              const nextTab = tab === "profile" && activeTab === "profile" ? "chats" : tab;
+              setActiveTab(nextTab);
+              setIsProfileOpen(nextTab === "profile");
+              setIsContactInfoOpen(false);
             }}
             isProfileOpen={activeTab === "profile" || isProfileOpen}
             onProfileClick={() => {
