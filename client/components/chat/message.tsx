@@ -487,9 +487,13 @@ export default function ChatBar({
   }, []);
 
   return (
-    <section className="relative flex h-full min-h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[#0a111a]/95 shadow-[0_20px_40px_-30px_rgba(0,0,0,0.9)]">
-      {/* Background */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.06),_transparent_20%),radial-gradient(circle_at_bottom_right,_rgba(16,163,127,0.12),_transparent_18%)] opacity-80" />
+    <section className="relative flex h-full min-h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[#070d16] shadow-[0_20px_40px_-30px_rgba(0,0,0,0.9)]">
+      {/* Background Wallpaper */}
+      <div 
+        className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-30 mix-blend-screen"
+        style={{ backgroundImage: "url('/chat-bg.png')" }}
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#070d16]/70 via-[#070d16]/30 to-[#070d16]/80" />
 
       {/* Header */}
       <div className="relative z-20 flex items-center justify-between gap-2 md:gap-4 border-b border-white/10 px-4 md:px-6 py-3 md:py-4">
@@ -1018,20 +1022,34 @@ export default function ChatBar({
           </>
         ) : (
           /* No contact selected */
-          <div className="flex flex-1 flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-white/10 bg-[#08101b] p-10 text-center text-gray-400">
-            <p className="mb-3 text-xl font-semibold text-white">
-              Select a contact to open chat
-            </p>
+          <div 
+            className="relative flex flex-1 flex-col items-center justify-center rounded-[1.75rem] border border-white/10 p-6 md:p-12 text-center text-gray-400 overflow-hidden"
+            style={{
+              backgroundImage: "linear-gradient(rgba(7, 13, 22, 0.72), rgba(7, 13, 22, 0.85)), url('/chat-bg.png')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+            }}
+          >
+            <div className="relative z-10 flex max-w-lg flex-col items-center rounded-3xl border border-white/10 bg-[#070f1c]/85 p-8 shadow-2xl backdrop-blur-md">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/20 to-blue-500/20 text-emerald-400 ring-1 ring-white/10 shadow-lg">
+                <MessageCircle size={32} />
+              </div>
 
-            <p className="mx-auto max-w-2xl text-sm leading-7 text-gray-400">
-              Choose a contact from the list on the left to view your
-              WhatsApp-style conversation. You’ll see your recent chat history
-              and be able to send messages when a conversation is selected.
-            </p>
+              <p className="mb-2 text-2xl font-bold tracking-tight text-white">
+                Select a contact to open chat
+              </p>
 
-            <div className="mx-auto mt-8 inline-flex items-center gap-2 rounded-full bg-white/5 px-5 py-3 text-sm text-gray-300">
-              <MessageCircle size={18} />
-              <span>Start by selecting a person to message.</span>
+              <p className="mx-auto text-sm leading-relaxed text-gray-400">
+                Choose a contact from the list on the left to view your
+                WhatsApp-style conversation. You’ll see your recent chat history
+                and be able to send messages when a conversation is selected.
+              </p>
+
+              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-medium text-gray-300">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Start by selecting a person to message.</span>
+              </div>
             </div>
           </div>
         )}
