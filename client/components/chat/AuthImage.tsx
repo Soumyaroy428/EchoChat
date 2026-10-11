@@ -10,6 +10,10 @@ export default function AuthImage({ src, ...props }: AuthImageProps) {
 
   useEffect(() => {
     let active = true;
+    let createdUrl: string | null = null;
+
+    setError(false);
+    setObjectUrl(null);
 
     const fetchImage = async () => {
       try {
@@ -26,8 +30,8 @@ export default function AuthImage({ src, ...props }: AuthImageProps) {
 
         const blob = await response.blob();
         if (active) {
-          const url = URL.createObjectURL(blob);
-          setObjectUrl(url);
+          createdUrl = URL.createObjectURL(blob);
+          setObjectUrl(createdUrl);
         }
       } catch (err) {
         if (active) {
@@ -42,8 +46,8 @@ export default function AuthImage({ src, ...props }: AuthImageProps) {
 
     return () => {
       active = false;
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
+      if (createdUrl) {
+        URL.revokeObjectURL(createdUrl);
       }
     };
   }, [src]);
@@ -58,4 +62,3 @@ export default function AuthImage({ src, ...props }: AuthImageProps) {
 
   return <img src={objectUrl} {...props} />;
 }
-

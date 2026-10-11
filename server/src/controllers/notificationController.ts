@@ -11,7 +11,7 @@ export const subscribeToNotifications = async (req: Request, res: Response) => {
     }
 
     // Disassociate this endpoint from any other user to prevent cross-account push leaks
-    await User.updateMany(
+    await User.updateMany( 
       { _id: { $ne: userId } },
       { $pull: { pushSubscriptions: { endpoint: subscription.endpoint } } }
     );

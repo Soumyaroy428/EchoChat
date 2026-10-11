@@ -1,6 +1,18 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
-import { register, login, getProfile, getContacts, sendOtp, verifyOtp, uploadAvatar, removeAvatar, getAvatar, updateAbout, updateName } from "../controllers/authController";
+import {
+  register,
+  login,
+  getProfile,
+  getContacts,
+  sendOtp,
+  verifyOtp,
+  uploadAvatar,
+  removeAvatar,
+  getAvatar,
+  updateAbout,
+  updateName,
+} from "../controllers/authController";
 import { authenticate } from "../middleware/auth";
 import { avatarUpload } from "../middleware/avatarUpload";
 
@@ -9,7 +21,23 @@ const router = Router();
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // Limit each IP to 10 requests per windowMs
-  message: { error: "Too many requests from this IP, please try again after 15 minutes" },
+  message: { error: "Too many authentication requests from this IP, please try again after 15 minutes" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const sendOtpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Separate limit for OTP dispatch
+  message: { error: "Too many OTP dispatch requests from this IP, please try again after 15 minutes" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const verifyOtpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Separate limit for OTP verification attempts
+  message: { error: "Too many OTP verification attempts from this IP, please try again after 15 minutes" },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -23,7 +51,7 @@ router.get("/contacts", authenticate, getContacts);
 router.get("/avatar/:userId", getAvatar);
 router.put("/profile/avatar", authenticate, avatarUpload.single("avatar"), uploadAvatar);
 router.delete("/profile/avatar", authenticate, removeAvatar);
-router.post("/sendOtp", authLimiter, sendOtp);
-router.post("/verifyOtp", authLimiter, verifyOtp);
+router.post("/sendOtp", sendOtpLimiter, sendOtp);
+router.post("/verifyOtp", verifyOtpLimiter, verifyOtp);
 
 export default router;
