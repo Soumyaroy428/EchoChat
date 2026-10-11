@@ -52,6 +52,11 @@ export default function CallSection({ contacts, onStartCall }: CallSectionProps)
                         src={contact.avatar}
                         alt={contact.name}
                         className="h-full w-full rounded-full object-cover"
+                        fallback={
+                          <div className="h-full w-full flex items-center justify-center bg-blue-600 text-white font-bold text-sm">
+                            {contact.name[0]?.toUpperCase() || <User size={16} />}
+                          </div>
+                        }
                       />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center bg-blue-600 text-white font-bold text-sm">

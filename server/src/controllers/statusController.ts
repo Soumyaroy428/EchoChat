@@ -5,7 +5,15 @@ import NewContact from "../models/newContact";
 import User from "../models/User";
 import { uploadMediaFile } from "../services/storageService";
 import mongoose from "mongoose";
-import { io } from "../app";
+import { getIO } from "../app";
+
+const sanitizeMediaUrl = (url?: string) => {
+  if (!url) return "";
+  if (url.startsWith("http://") && !url.includes("localhost") && !url.includes("127.0.0.1")) {
+    return url.replace("http://", "https://");
+  }
+  return url;
+};
 
 export const createStatus = async (req: AuthRequest, res: Response) => {
   try {
@@ -18,11 +26,23 @@ export const createStatus = async (req: AuthRequest, res: Response) => {
     let { mediaUrl, mediaType } = req.body;
 
     if (req.file) {
-      const uploadResult = await uploadMediaFile(req.file.path, "echochat/status");
+      const isVideo = req.file.mimetype.startsWith("video/");
+      const uploadResult = await uploadMediaFile(
+        req.file.path,
+        "echochat/status",
+        isVideo ? "video" : "image"
+      );
+
+      const forwardedProto = req.get("x-forwarded-proto");
+      const protocol = forwardedProto
+        ? forwardedProto.split(",")[0].trim()
+        : (req.protocol === "http" && process.env.NODE_ENV === "production" ? "https" : req.protocol);
+      const host = req.get("host");
+
       mediaUrl = uploadResult.isCloud
         ? uploadResult.url
-        : `${req.protocol}://${req.get("host")}/uploads/status/${req.file.filename}`;
-      mediaType = req.file.mimetype.startsWith("video/") ? "video" : "image";
+        : `${protocol}://${host}${uploadResult.url}`;
+      mediaType = isVideo ? "video" : "image";
     }
 
     if (!mediaUrl && !text) {
@@ -38,14 +58,22 @@ export const createStatus = async (req: AuthRequest, res: Response) => {
 
     const newStatus = await Status.create({
       user: userId,
-      mediaUrl: mediaUrl || "",
+      mediaUrl: sanitizeMediaUrl(mediaUrl),
       mediaType,
       text: text || "",
       backgroundColor: backgroundColor || "#0d6b50",
       font: font || "sans-serif",
       expiresAt,
     });
-    io.emit("new_status");
+
+    try {
+      const ioInstance = req.app?.get("io") || getIO();
+      if (ioInstance && typeof ioInstance.emit === "function") {
+        ioInstance.emit("new_status");
+      }
+    } catch (socketErr) {
+      console.warn("Failed to emit new_status socket event:", socketErr);
+    }
 
     const populatedStatus = await Status.findById(newStatus._id).populate(
       "user",
@@ -126,17 +154,39 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
       select: "name mobile avatar",
     });
 
-    const contactStatuses = Array.from(contactMap.values()).sort((a, b) => {
-      // Unviewed stories first, then by recency
-      if (a.allViewed !== b.allViewed) {
-        return a.allViewed ? 1 : -1;
+    const formatStatusItem = (st: any) => {
+      const obj = st.toObject ? st.toObject() : { ...st };
+      obj.mediaUrl = sanitizeMediaUrl(obj.mediaUrl);
+      if (obj.user && obj.user.avatar) {
+        const rawAv = typeof obj.user.avatar === "string" ? obj.user.avatar : obj.user.avatar.url;
+        obj.user.avatar = sanitizeMediaUrl(rawAv);
       }
-      return b.latestTimestamp.getTime() - a.latestTimestamp.getTime();
-    });
+      return obj;
+    };
+
+    const formattedContactStatuses = Array.from(contactMap.values())
+      .map((group) => {
+        const userAvatar = typeof group.user?.avatar === "string" ? group.user.avatar : group.user?.avatar?.url;
+        return {
+          ...group,
+          user: {
+            ...group.user,
+            avatar: sanitizeMediaUrl(userAvatar),
+          },
+          stories: group.stories.map(formatStatusItem),
+        };
+      })
+      .sort((a, b) => {
+        // Unviewed stories first, then by recency
+        if (a.allViewed !== b.allViewed) {
+          return a.allViewed ? 1 : -1;
+        }
+        return b.latestTimestamp.getTime() - a.latestTimestamp.getTime();
+      });
 
     return res.status(200).json({
-      myStatuses,
-      contactStatuses,
+      myStatuses: myStatuses.map(formatStatusItem),
+      contactStatuses: formattedContactStatuses,
     });
   } catch (error) {
     console.error("Get statuses error:", error);

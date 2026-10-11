@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { X, ChevronLeft, ChevronRight, Eye, Trash2, Send, Pause, Play } from "lucide-react";
-import AuthImage from "../chat/AuthImage";
+import AuthImage, { resolveImageUrl } from "../chat/AuthImage";
 import { socket } from "../../lib/socket";
 
 export type StatusItem = {
@@ -92,8 +92,11 @@ export default function StatusViewerModal({
     const markViewed = async () => {
       try {
         const token = localStorage.getItem("token");
+        const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000")
+          .replace(/\/api\/v1\/?$/, "")
+          .replace(/\/+$/, "");
         await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/status/${currentStory._id}/view`,
+          `${apiBase}/api/status/${currentStory._id}/view`,
           {
             method: "POST",
             headers: {
@@ -248,6 +251,11 @@ export default function StatusViewerModal({
                   src={avatarUrl}
                   alt={authorName}
                   className="h-full w-full object-cover"
+                  fallback={
+                    <div className="h-full w-full flex items-center justify-center text-white font-bold text-sm bg-blue-600">
+                      {authorName[0]?.toUpperCase()}
+                    </div>
+                  }
                 />
               ) : (
                 <div className="h-full w-full flex items-center justify-center text-white font-bold text-sm bg-blue-600">
@@ -337,7 +345,7 @@ export default function StatusViewerModal({
             </div>
           ) : currentStory.mediaType === "video" ? (
             <video
-              src={currentStory.mediaUrl}
+              src={resolveImageUrl(currentStory.mediaUrl || "")}
               autoPlay
               playsInline
               className="max-h-full max-w-full object-contain"
@@ -349,6 +357,11 @@ export default function StatusViewerModal({
                   src={currentStory.mediaUrl}
                   alt="Story photo"
                   className="max-h-full max-w-full object-contain"
+                  fallback={
+                    <div className="flex flex-col items-center justify-center text-gray-400 gap-2 p-8">
+                      <span className="text-sm">Unable to load image</span>
+                    </div>
+                  }
                 />
               )}
               {currentStory.text && (

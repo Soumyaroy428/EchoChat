@@ -21,6 +21,7 @@ import NewContact from "./models/newContact";
 import Group from "./models/Group";
 
 const app = express();
+app.set("trust proxy", 1);
 const server = createServer(app);
 const mapMessage = (message: {
   _id?: { toString(): string };
@@ -49,6 +50,8 @@ export const io = new Server(server, {
     credentials: true,
   },
 });
+app.set("io", io);
+export const getIO = () => io;
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const resolveUserId = async (id: string) => {
@@ -486,7 +489,15 @@ app.use("/api/messages", messageHistoryRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/status", statusRoutes);
-app.use("/uploads/status", express.static(path.join(process.cwd(), "uploads", "status")));
+
+const uploadRootDir = path.join(process.cwd(), "uploads");
+const statusUploadDir = path.join(uploadRootDir, "status");
+const chatMediaUploadDir = path.join(uploadRootDir, "chat_media");
+if (!fs.existsSync(statusUploadDir)) fs.mkdirSync(statusUploadDir, { recursive: true });
+if (!fs.existsSync(chatMediaUploadDir)) fs.mkdirSync(chatMediaUploadDir, { recursive: true });
+
+app.use("/uploads/status", express.static(statusUploadDir));
+app.use("/uploads", express.static(uploadRootDir));
 
 export { server };
 export default app;

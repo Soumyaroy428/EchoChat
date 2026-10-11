@@ -196,3 +196,4 @@ export async function decryptE2EEMessage(
 export function isE2EEMessage(text: string): boolean {
   return typeof text === "string" && text.startsWith("e2ee:v1:");
 }
+

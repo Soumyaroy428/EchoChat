@@ -9,9 +9,13 @@ export const uploadMedia = async (req: Request, res: Response) => {
     }
 
     const uploadResult = await uploadMediaFile(file.path);
+    const forwardedProto = req.get("x-forwarded-proto");
+    const protocol = forwardedProto
+      ? forwardedProto.split(",")[0].trim()
+      : (req.protocol === "http" && process.env.NODE_ENV === "production" ? "https" : req.protocol);
     const finalUrl = uploadResult.isCloud
       ? uploadResult.url
-      : `${req.protocol}://${req.get("host")}${uploadResult.url}`;
+      : `${protocol}://${req.get("host")}${uploadResult.url}`;
 
     return res.status(201).json({
       url: finalUrl,

@@ -3,19 +3,25 @@ import fs from "fs";
 import path from "path";
 
 // Initialize Cloudinary if credentials exist
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET;
+
 const isCloudinaryConfigured = Boolean(
-  process.env.CLOUDINARY_NAME &&
-  process.env.CLOUDINARY_KEY &&
-  process.env.CLOUDINARY_SECRET
+  (cloudName && apiKey && apiSecret) || process.env.CLOUDINARY_URL
 );
 
 if (isCloudinaryConfigured) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_NAME,
-    api_key: process.env.CLOUDINARY_KEY,
-    api_secret: process.env.CLOUDINARY_SECRET,
-    secure: true,
-  });
+  if (process.env.CLOUDINARY_URL) {
+    cloudinary.config();
+  } else {
+    cloudinary.config({
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret,
+      secure: true,
+    });
+  }
 }
 
 export interface UploadResult {

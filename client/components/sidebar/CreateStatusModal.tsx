@@ -68,13 +68,18 @@ export default function CreateStatusModal({
         formData.append("mediaType", "text");
       } else if (selectedFile) {
         formData.append("media", selectedFile);
+        formData.append("mediaType", selectedFile.type.startsWith("video/") ? "video" : "image");
         if (text.trim()) {
           formData.append("text", text.trim());
         }
       }
 
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000")
+        .replace(/\/api\/v1\/?$/, "")
+        .replace(/\/+$/, "");
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/status`,
+        `${apiBase}/api/status`,
         {
           method: "POST",
           headers: {
@@ -85,8 +90,14 @@ export default function CreateStatusModal({
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create status");
+        let errorMsg = "Failed to create status";
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch {
+          errorMsg = `Server error (${response.status}): ${response.statusText || "Upload failed"}`;
+        }
+        throw new Error(errorMsg);
       }
 
       handleReset();

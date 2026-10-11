@@ -48,8 +48,12 @@ export default function StatusSection({
       const token = localStorage.getItem("token");
       if (!token) return;
 
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000")
+        .replace(/\/api\/v1\/?$/, "")
+        .replace(/\/+$/, "");
+
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/status`,
+        `${apiBase}/api/status`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -82,8 +86,12 @@ export default function StatusSection({
   const handleDeleteStatus = async (statusId: string): Promise<boolean> => {
     try {
       const token = localStorage.getItem("token");
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000")
+        .replace(/\/api\/v1\/?$/, "")
+        .replace(/\/+$/, "");
+
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/status/${statusId}`,
+        `${apiBase}/api/status/${statusId}`,
         {
           method: "DELETE",
           headers: {
@@ -168,6 +176,11 @@ export default function StatusSection({
                     src={currentUser.avatar}
                     alt={currentUser.name}
                     className="h-full w-full rounded-full object-cover"
+                    fallback={
+                      <div className="h-full w-full flex items-center justify-center bg-blue-600 text-white font-bold rounded-full text-base">
+                        {currentUser?.name?.[0]?.toUpperCase() || "M"}
+                      </div>
+                    }
                   />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center bg-blue-600 text-white font-bold rounded-full text-base">
@@ -244,6 +257,11 @@ export default function StatusSection({
                           src={avatar}
                           alt={name}
                           className="h-full w-full rounded-full object-cover"
+                          fallback={
+                            <div className="h-full w-full flex items-center justify-center bg-purple-600 text-white font-bold rounded-full text-base">
+                              {name[0]?.toUpperCase()}
+                            </div>
+                          }
                         />
                       ) : (
                         <div className="h-full w-full flex items-center justify-center bg-purple-600 text-white font-bold rounded-full text-base">
@@ -296,6 +314,11 @@ export default function StatusSection({
                           src={avatar}
                           alt={name}
                           className="h-full w-full rounded-full object-cover"
+                          fallback={
+                            <div className="h-full w-full flex items-center justify-center bg-gray-600 text-white font-bold rounded-full text-base">
+                              {name[0]?.toUpperCase()}
+                            </div>
+                          }
                         />
                       ) : (
                         <div className="h-full w-full flex items-center justify-center bg-gray-600 text-white font-bold rounded-full text-base">

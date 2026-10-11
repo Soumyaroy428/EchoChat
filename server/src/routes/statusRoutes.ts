@@ -20,6 +20,9 @@ if (!fs.existsSync(statusUploadDir)) {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    if (!fs.existsSync(statusUploadDir)) {
+      fs.mkdirSync(statusUploadDir, { recursive: true });
+    }
     cb(null, statusUploadDir);
   },
   filename: function (req, file, cb) {

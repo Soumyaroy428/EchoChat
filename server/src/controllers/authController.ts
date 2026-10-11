@@ -10,7 +10,14 @@ import { spec } from "node:test/reporters";
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-const avatarUrl = (avatar?: { url?: string }) => avatar?.url || "";
+const avatarUrl = (avatar?: { url?: string }) => {
+  if (!avatar?.url) return "";
+  let url = avatar.url;
+  if (url.startsWith("http://") && !url.includes("localhost") && !url.includes("127.0.0.1")) {
+    url = url.replace("http://", "https://");
+  }
+  return url;
+};
 
 const profilePayload = (user: any) => ({
   id: user._id,
@@ -216,7 +223,12 @@ export const uploadAvatar = async (req: Request, res: Response) => {
     const user = await User.findById((req as any).userId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    const url = `${req.protocol}://${req.get("host")}/api/auth/avatar/${user._id}?v=${Date.now()}`;
+    const forwardedProto = req.get("x-forwarded-proto");
+    const protocol = forwardedProto
+      ? forwardedProto.split(",")[0].trim()
+      : (req.protocol === "http" && process.env.NODE_ENV === "production" ? "https" : req.protocol);
+    const host = req.get("host");
+    const url = `${protocol}://${host}/api/auth/avatar/${user._id}?v=${Date.now()}`;
     user.avatar = {
       url,
       filename: file.originalname,

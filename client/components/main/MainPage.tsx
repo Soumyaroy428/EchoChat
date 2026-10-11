@@ -51,6 +51,27 @@ type ContactResponse = {
   avatar?: string;
 };
 
+const cleanAvatar = (url?: string) => {
+  if (!url) return "";
+  let resolved = url.trim();
+  if (
+    typeof window !== "undefined" &&
+    window.location.protocol === "https:" &&
+    resolved.startsWith("http://") &&
+    !resolved.includes("localhost") &&
+    !resolved.includes("127.0.0.1")
+  ) {
+    resolved = resolved.replace(/^http:\/\//, "https://");
+  }
+  if (resolved.startsWith("/")) {
+    const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000")
+      .replace(/\/api\/v1\/?$/, "")
+      .replace(/\/+$/, "");
+    resolved = `${apiBase}${resolved}`;
+  }
+  return resolved;
+};
+
 export default function MainPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -97,7 +118,10 @@ export default function MainPage() {
         }
 
         const profileData = await profileRes.json();
-        setUser(profileData.user);
+        setUser({
+          ...profileData.user,
+          avatar: cleanAvatar(profileData.user?.avatar),
+        });
         subscribeToPushNotifications(false, profileData.user?.id);
 
         try {
@@ -142,7 +166,7 @@ export default function MainPage() {
               id: c.id || c._id,
               name: `${c.firstName || ""}${c.lastName ? " " + c.lastName : ""}`.trim() || c.username || c.mobile,
               mobile: c.mobile,
-              avatar: c.avatar,
+              avatar: cleanAvatar(c.avatar),
               isOnline: c.isOnline || false,
               lastSeen: c.lastSeen,
               publicKey: c.publicKey || "",
