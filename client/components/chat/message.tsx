@@ -487,16 +487,9 @@ export default function ChatBar({
   }, []);
 
   return (
-    <section className="relative flex h-full min-h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[#070d16] shadow-[0_20px_40px_-30px_rgba(0,0,0,0.9)]">
-      {/* Background Wallpaper */}
-      <div 
-        className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-30 mix-blend-screen"
-        style={{ backgroundImage: "url('/chat-bg.png')" }}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#070d16]/70 via-[#070d16]/30 to-[#070d16]/80" />
-
+    <section className="chat-panel h-full min-h-[calc(100vh-4rem)] shadow-[0_20px_40px_-30px_rgba(0,0,0,0.9)]">
       {/* Header */}
-      <div className="relative z-20 flex items-center justify-between gap-2 md:gap-4 border-b border-white/10 px-4 md:px-6 py-3 md:py-4">
+      <div className="chat-header relative z-20">
         {/* Contact information */}
         <div className="flex items-center gap-2 md:gap-4">
           {selectedContact && onBack && (
@@ -917,7 +910,7 @@ export default function ChatBar({
             </div>
 
             {/* Message input */}
-            <div className="border-t border-white/10 px-5 py-4">
+            <div className="message-composer">
               <form
                 onSubmit={handleSend}
                 className="flex items-center gap-3 rounded-full bg-[#15202f] px-4 py-3 text-gray-200 shadow-[0_10px_40px_-30px_rgba(0,0,0,0.8)]"
@@ -1022,32 +1015,22 @@ export default function ChatBar({
           </>
         ) : (
           /* No contact selected */
-          <div 
-            className="relative flex flex-1 flex-col items-center justify-center rounded-[1.75rem] border border-white/10 p-6 md:p-12 text-center text-gray-400 overflow-hidden"
-            style={{
-              backgroundImage: "linear-gradient(rgba(7, 13, 22, 0.72), rgba(7, 13, 22, 0.85)), url('/chat-bg.png')",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-            }}
-          >
-            <div className="relative z-10 flex max-w-lg flex-col items-center rounded-3xl border border-white/10 bg-[#070f1c]/85 p-8 shadow-2xl backdrop-blur-md">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/20 to-blue-500/20 text-emerald-400 ring-1 ring-white/10 shadow-lg">
+          <div className="chat-content">
+            <div className="empty-chat-card">
+              <div className="empty-chat-icon">
                 <MessageCircle size={32} />
               </div>
 
-              <p className="mb-2 text-2xl font-bold tracking-tight text-white">
-                Select a contact to open chat
-              </p>
+              <h2>Select a contact to open chat</h2>
 
-              <p className="mx-auto text-sm leading-relaxed text-gray-400">
+              <p>
                 Choose a contact from the list on the left to view your
                 WhatsApp-style conversation. You’ll see your recent chat history
                 and be able to send messages when a conversation is selected.
               </p>
 
-              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-medium text-gray-300">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="empty-chat-hint">
+                <span className="status-dot" />
                 <span>Start by selecting a person to message.</span>
               </div>
             </div>

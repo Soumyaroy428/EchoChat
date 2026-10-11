@@ -128,3 +128,156 @@
     @apply font-sans;
   }
 }
+
+/* ==============================
+   ECHOCHAT - CHAT PANEL & WALLPAPER
+   ============================== */
+
+:root {
+  --bg-main: #05090f;
+  --bg-sidebar: #080f19;
+  --bg-panel: #0b1521;
+  --bg-card: #0a1620;
+  --border-echo: rgba(148, 163, 184, 0.14);
+  --text-primary: #f4f7fb;
+  --text-secondary: #94a3b8;
+  --accent-green: #00e6a0;
+  --accent-blue: #078bff;
+}
+
+/* Main chat panel */
+.chat-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  isolation: isolate;
+  overflow: hidden;
+  background: #060d16;
+  border: 1px solid var(--border-echo);
+  border-radius: 30px;
+}
+
+/* Neon wallpaper */
+.chat-panel::before {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  content: "";
+  background-image: url("/images/echo-chat-wallpaper.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+/* Darken the wallpaper without hiding its neon icons */
+.chat-panel::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background: rgba(3, 10, 18, 0.56);
+  pointer-events: none;
+}
+
+/* Chat header */
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 82px;
+  padding: 14px 22px;
+  background: rgba(5, 12, 21, 0.84);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.17);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Empty chat state */
+.chat-content {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 28px;
+  overflow: auto;
+}
+
+.empty-chat-card {
+  width: min(100%, 540px);
+  padding: 32px 28px;
+  text-align: center;
+  background: rgba(5, 14, 25, 0.94);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 25px;
+  box-shadow: 0 20px 65px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.empty-chat-icon {
+  display: grid;
+  place-items: center;
+  width: 66px;
+  height: 66px;
+  margin: 0 auto 20px;
+  color: var(--accent-green);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 230, 160, 0.16),
+    rgba(0, 139, 255, 0.18)
+  );
+  border: 1px solid rgba(0, 230, 160, 0.12);
+  border-radius: 20px;
+}
+
+.empty-chat-card h2 {
+  margin: 0 0 12px;
+  color: #f5f7fb;
+  font-family: Georgia, serif;
+  font-size: clamp(19px, 2vw, 23px);
+}
+
+.empty-chat-card p {
+  max-width: 440px;
+  margin: 0 auto 24px;
+  color: #aeb9c9;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.empty-chat-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 11px 18px;
+  color: #d9e0e9;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid var(--border-echo);
+  border-radius: 28px;
+  font-size: 12px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  background: var(--accent-green);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 230, 160, 0.45);
+}
+
+/* Message composer */
+.message-composer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(5, 12, 21, 0.92);
+  border-top: 1px solid var(--border-echo);
+}
