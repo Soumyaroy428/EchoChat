@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { socket } from "../../lib/socket";
 import { subscribeToPushNotifications, unsubscribeFromPushNotifications } from "../../lib/push";
+import { getOrCreateUserKeyPair } from "../../lib/e2ee";
 import Side from "../sidebar/side";
 import UserProfileEdit from "../sidebar/userProfileEdit";
 import ContactBar from "../contactBar/contact";
@@ -25,6 +26,7 @@ type Contact = {
   members?: string[];
   description?: string;
   admins?: string[];
+  publicKey?: string;
 };
 
 type UserProfile = {
@@ -37,6 +39,7 @@ type UserProfile = {
   about?: string;
   aboutVisibility?: "everyone" | "contacts" | "nobody";
   aboutExpiresAt?: string | null;
+  publicKey?: string;
 };
 
 type ContactResponse = {
@@ -57,6 +60,7 @@ export default function MainPage() {
   const [isContactInfoOpen, setIsContactInfoOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [userPrivateKey, setUserPrivateKey] = useState<JsonWebKey | null>(null);
 
   // Call States
   const [callData, setCallData] = useState<any>(null); // Incoming call info
@@ -95,6 +99,23 @@ export default function MainPage() {
         const profileData = await profileRes.json();
         setUser(profileData.user);
         subscribeToPushNotifications(false, profileData.user?.id);
+
+        try {
+          const keyPair = await getOrCreateUserKeyPair(profileData.user.id);
+          setUserPrivateKey(keyPair.privateKeyJwk);
+          if (!profileData.user.publicKey || profileData.user.publicKey !== keyPair.publicKey) {
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/profile/public-key`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ publicKey: keyPair.publicKey }),
+            }).catch(console.error);
+          }
+        } catch (keyErr) {
+          console.warn("E2EE key generation error:", keyErr);
+        }
         // fetch contacts from server (persisted contacts)
         try {
           const token = localStorage.getItem("token");
@@ -124,6 +145,7 @@ export default function MainPage() {
               avatar: c.avatar,
               isOnline: c.isOnline || false,
               lastSeen: c.lastSeen,
+              publicKey: c.publicKey || "",
             }));
           }
 
@@ -500,6 +522,7 @@ export default function MainPage() {
         {/* Right Panel (ChatBar) - Hidden on mobile if NO chat is selected */}
         <div className={`flex-1 w-full h-full flex-col ${!selectedContact ? 'hidden md:flex' : 'flex'}`}>
           <ChatBar
+            userPrivateKey={userPrivateKey}
             selectedContact={selectedContact}
             currentUser={user}
             onOpenContactInfo={() => setIsContactInfoOpen(true)}

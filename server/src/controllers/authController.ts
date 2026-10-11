@@ -22,6 +22,7 @@ const profilePayload = (user: any) => ({
   about: user.about || "",
   aboutVisibility: user.aboutVisibility || "everyone",
   aboutExpiresAt: user.aboutExpiresAt || null,
+  publicKey: user.publicKey || "",
 });
 
 export const register = async (req: Request, res: Response) => {
@@ -188,7 +189,7 @@ export const updateName = async (req: Request, res: Response) => {
 export const getContacts = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
-    const users = await User.find({ _id: { $ne: userId } }).select("name mobile avatar isOnline lastSeen");
+    const users = await User.find({ _id: { $ne: userId } }).select("name mobile avatar isOnline lastSeen publicKey");
 
     res.json({
       contacts: users.map((contact) => ({
@@ -198,6 +199,7 @@ export const getContacts = async (req: Request, res: Response) => {
         avatar: avatarUrl(contact.avatar),
         isOnline: contact.isOnline,
         lastSeen: contact.lastSeen,
+        publicKey: contact.publicKey || "",
       })),
     });
   } catch (error) {
@@ -396,5 +398,36 @@ export const verifyOtp = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Verify OTP error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const updatePublicKey = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const { publicKey } = req.body;
+    if (typeof publicKey !== "string" || !publicKey.trim()) {
+      return res.status(400).json({ error: "Valid public key is required" });
+    }
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { publicKey: publicKey.trim() },
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ error: "User not found" });
+    return res.json({ message: "Public key updated successfully", publicKey: user.publicKey });
+  } catch (error) {
+    console.error("Update public key error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getPublicKeyByUserId = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId).select("publicKey");
+    if (!user) return res.status(404).json({ error: "User not found" });
+    return res.json({ publicKey: user.publicKey || "" });
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
   }
 };

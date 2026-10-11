@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import AuthImage from "./AuthImage";
+import { encryptE2EEMessage, decryptE2EEMessage, isE2EEMessage } from "../../lib/e2ee";
 import { socket } from "../../lib/socket";
 import {
   MessageCircle,
@@ -39,7 +40,8 @@ import {
   CheckCheck,
   Mic,
   Square,
-  MapPin
+  MapPin,
+  Lock
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -58,6 +60,7 @@ type Contact = {
   lastSeen?: string;
   isGroup?: boolean;
   members?: string[];
+  publicKey?: string;
 };
 
 type CurrentUser = {
@@ -75,6 +78,7 @@ type ChatBarProps = {
   onOpenContactInfo: () => void;
   onBack?: () => void;
   onCallContact?: (contact: Contact, isVideo: boolean) => void;
+  userPrivateKey?: JsonWebKey | null;
 };
 
 type Message = {
@@ -87,11 +91,13 @@ type Message = {
   mediaUrl?: string;
   messageType?: "text" | "image" | "audio" | "file" | "location" | "video";
   metadata?: any;
+  isE2EE?: boolean;
 };
 
 export default function ChatBar({
   selectedContact,
   currentUser,
+  userPrivateKey,
   onOpenContactInfo,
   onBack,
   onCallContact,

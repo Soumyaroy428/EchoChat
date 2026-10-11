@@ -12,6 +12,8 @@ import {
   getAvatar,
   updateAbout,
   updateName,
+  updatePublicKey,
+  getPublicKeyByUserId,
 } from "../controllers/authController";
 import { authenticate } from "../middleware/auth";
 import { avatarUpload } from "../middleware/avatarUpload";
@@ -47,6 +49,8 @@ router.post("/login", authLimiter, login);
 router.get("/profile", authenticate, getProfile);
 router.put("/profile/about", authenticate, updateAbout);
 router.put("/profile/name", authenticate, updateName);
+router.put("/profile/public-key", authenticate, updatePublicKey);
+router.get("/public-key/:userId", authenticate, getPublicKeyByUserId);
 router.get("/contacts", authenticate, getContacts);
 router.get("/avatar/:userId", getAvatar);
 router.put("/profile/avatar", authenticate, avatarUpload.single("avatar"), uploadAvatar);

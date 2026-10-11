@@ -17,6 +17,7 @@ export interface IUser extends Document {
   aboutVisibility?: "everyone" | "contacts" | "nobody";
   aboutExpiresAt?: Date | null;
   pushSubscriptions: any[];
+  publicKey?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -71,8 +72,11 @@ const UserSchema: Schema = new Schema(
       type: Array,
       default: [],
     },
+    publicKey: {
+      type: String,
+      default: "",
+    },
   },
-  
   {
     timestamps: true,
   }
