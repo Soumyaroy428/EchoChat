@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import { socket } from "../../lib/socket";
-import { subscribeToPushNotifications } from "../../lib/push";
+import { subscribeToPushNotifications, unsubscribeFromPushNotifications } from "../../lib/push";
 import Side from "../sidebar/side";
 import UserProfileEdit from "../sidebar/userProfileEdit";
 import ContactBar from "../contactBar/contact";
@@ -80,7 +80,6 @@ export default function MainPage() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("/sw.js").catch(console.error);
       }
-      subscribeToPushNotifications();
       try {
         const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -95,6 +94,7 @@ export default function MainPage() {
 
         const profileData = await profileRes.json();
         setUser(profileData.user);
+        subscribeToPushNotifications(false, profileData.user?.id);
         // fetch contacts from server (persisted contacts)
         try {
           const token = localStorage.getItem("token");
@@ -141,7 +141,22 @@ export default function MainPage() {
             }));
           }
 
-          setContacts([...mappedGroups, ...mappedContacts]);
+          const combined = [...mappedGroups, ...mappedContacts];
+          setContacts(combined);
+
+          if (typeof window !== "undefined") {
+            const searchParams = new URLSearchParams(window.location.search);
+            const targetGroupId = searchParams.get("groupId");
+            const targetContactId = searchParams.get("contactId");
+
+            if (targetGroupId) {
+              const matchedGroup = mappedGroups.find((g) => g.id === targetGroupId);
+              if (matchedGroup) setSelectedContact(matchedGroup);
+            } else if (targetContactId) {
+              const matchedContact = mappedContacts.find((c) => c.id === targetContactId);
+              if (matchedContact) setSelectedContact(matchedContact);
+            }
+          }
         } catch (fetchErr) {
           console.error("Failed to fetch contacts or groups", fetchErr);
           setContacts([]);
@@ -272,7 +287,12 @@ export default function MainPage() {
     );
   }, [contacts, searchTerm]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await unsubscribeFromPushNotifications();
+    } catch (e) {
+      console.warn("Error unsubscribing push on logout:", e);
+    }
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.location.reload();

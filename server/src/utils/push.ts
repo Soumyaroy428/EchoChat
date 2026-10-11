@@ -1,51 +1,64 @@
 import webpush from "web-push";
 import User from "../models/User";
 
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "BDp1i3Pue1pbyOjxkIAcDwBBtqJKStYhdlKyDCM-PQii0lo0Q5n3ZkjoA09BvVPT8ZlnpSsd5tzwCtyCpJF7hcQ";
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "uUTni7clXm86rxLZdPqi2Bs67yK1A8RUlN4dFmKVDzY";
-const VAPID_SUBJECT = process.env.VAPID_SUBJECT || "mailto:soumyaroy2022@gmail.com";
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT;
 
-webpush.setVapidDetails(
-  VAPID_SUBJECT,
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY
+const isVapidConfigured = Boolean(
+  VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && VAPID_SUBJECT
 );
 
+if (isVapidConfigured) {
+  webpush.setVapidDetails(
+    VAPID_SUBJECT!,
+    VAPID_PUBLIC_KEY!,
+    VAPID_PRIVATE_KEY!
+  );
+} else {
+  console.warn("VAPID keys not configured in environment. Web push notifications disabled.");
+}
+
 export const sendPushNotificationToUser = async (userId: string, payload: any) => {
+  if (!isVapidConfigured) {
+    return;
+  }
+
   try {
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select("pushSubscriptions");
     if (!user || !user.pushSubscriptions || user.pushSubscriptions.length === 0) {
       return;
     }
 
     const payloadString = JSON.stringify(payload);
-    
-    const invalidSubscriptions: any[] = [];
-    
-    const pushPromises = user.pushSubscriptions.map(async (sub) => {
+    const invalidEndpoints: string[] = [];
+
+    const pushPromises = user.pushSubscriptions.map(async (sub: any) => {
       try {
-        await webpush.sendNotification(sub, payloadString);
+        await webpush.sendNotification(sub, payloadString, { timeout: 10000 });
       } catch (error: any) {
         if (error.statusCode === 404 || error.statusCode === 410) {
           // Subscription has expired or is no longer valid
-          invalidSubscriptions.push(sub);
+          if (sub.endpoint) {
+            invalidEndpoints.push(sub.endpoint);
+          }
         } else {
-          console.error("Error sending push notification:", error);
+          console.error("Error sending push notification:", error.message || error);
         }
       }
     });
 
     await Promise.all(pushPromises);
 
-    // Clean up invalid subscriptions
-    if (invalidSubscriptions.length > 0) {
-      user.pushSubscriptions = user.pushSubscriptions.filter(
-        sub => !invalidSubscriptions.includes(sub)
-      );
-      await user.save();
+    // Targeted atomic database cleanup preserving concurrently added subscriptions
+    if (invalidEndpoints.length > 0) {
+      await User.findByIdAndUpdate(userId, {
+        $pull: {
+          pushSubscriptions: { endpoint: { $in: invalidEndpoints } },
+        },
+      });
     }
   } catch (error) {
     console.error("Push notification logic error:", error);
   }
 };
-

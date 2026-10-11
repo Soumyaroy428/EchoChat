@@ -17,21 +17,36 @@ self.addEventListener('push', function (event) {
 
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
+  const targetPath = event.notification.data?.url || '/';
+  const targetUrl = new URL(targetPath, self.location.origin).href;
+
   event.waitUntil(
-    clients.matchAll({ type: 'window' }).then((windowClients) => {
-      // Check if there is already a window/tab open with the target URL
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // Look for a window already on the target URL
       for (let i = 0; i < windowClients.length; i++) {
         const client = windowClients[i];
-        // If so, just focus it.
-        if (client.url.includes('/') && 'focus' in client) {
+        if (client.url === targetUrl && 'focus' in client) {
           return client.focus();
         }
       }
-      // If not, then open the target URL in a new window/tab.
+
+      // Look for an existing app window, navigate it to the target URL, and focus it
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url.startsWith(self.location.origin) && 'focus' in client) {
+          if ('navigate' in client) {
+            return client.navigate(targetUrl).then((navClient) => {
+              return navClient ? navClient.focus() : client.focus();
+            });
+          }
+          return client.focus();
+        }
+      }
+
+      // If no suitable window is open, open a new one
       if (clients.openWindow) {
-        return clients.openWindow(event.notification.data?.url || '/');
+        return clients.openWindow(targetUrl);
       }
     })
   );
 });
-
