@@ -7,6 +7,7 @@ import groupRoutes from "./routes/groupRoutes";
 import messageHistoryRoutes from "./routes/messageHistoryRoutes";
 import mediaRoutes from "./routes/mediaRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
+import statusRoutes from "./routes/statusRoutes";
 import bodyParser from "body-parser";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
@@ -375,6 +376,8 @@ app.use("/api/groups", groupRoutes);
 app.use("/api/messages", messageHistoryRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/status", statusRoutes);
+app.use("/uploads/status", express.static(path.join(process.cwd(), "uploads", "status")));
 
 export { server };
 export default app;

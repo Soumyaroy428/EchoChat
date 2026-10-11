@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { uploadMediaFile } from "../services/storageService";
 
 export const uploadMedia = async (req: Request, res: Response) => {
   try {
@@ -7,15 +8,19 @@ export const uploadMedia = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const url = `${req.protocol}://${req.get("host")}/uploads/chat_media/${file.filename}`;
-    
+    const uploadResult = await uploadMediaFile(file.path);
+    const finalUrl = uploadResult.isCloud
+      ? uploadResult.url
+      : `${req.protocol}://${req.get("host")}${uploadResult.url}`;
+
     return res.status(201).json({
-      url,
+      url: finalUrl,
       metadata: {
         originalname: file.originalname,
         mimetype: file.mimetype,
-        size: file.size
-      }
+        size: uploadResult.size || file.size,
+        isCloud: uploadResult.isCloud,
+      },
     });
   } catch (error) {
     console.error("Upload media error:", error);

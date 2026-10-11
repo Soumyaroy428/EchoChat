@@ -9,6 +9,8 @@ import ContactBar from "../contactBar/contact";
 import ChatBar from "../chat/message";
 import ContactInfoPanel from "../chat/ContactInfoPanel";
 import CallModal from "../chat/CallModal";
+import StatusSection from "../sidebar/statusSection";
+import CallSection from "../sidebar/callSection";
 
 type Contact = {
   id: string;
@@ -51,6 +53,7 @@ export default function MainPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"chats" | "calls" | "status" | "profile">("chats");
   const [isContactInfoOpen, setIsContactInfoOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
@@ -412,9 +415,21 @@ export default function MainPage() {
         <div className={`md:w-[80px] xl:w-[96px] flex-shrink-0 order-last md:order-first mt-auto md:mt-0 h-16 md:h-full ${selectedContact ? 'hidden md:block' : 'block'}`}>
           <Side
             hasActiveChat={!!selectedContact}
-            isProfileOpen={isProfileOpen}
-            onProfileClick={() => setIsProfileOpen((isOpen) => !isOpen)}
-            onMessagesClick={() => setIsProfileOpen(false)}
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setActiveTab(tab);
+              setIsProfileOpen(tab === "profile");
+            }}
+            isProfileOpen={activeTab === "profile" || isProfileOpen}
+            onProfileClick={() => {
+              const next = activeTab === "profile" ? "chats" : "profile";
+              setActiveTab(next);
+              setIsProfileOpen(next === "profile");
+            }}
+            onMessagesClick={() => {
+              setActiveTab("chats");
+              setIsProfileOpen(false);
+            }}
             avatar={user?.avatar}
             userName={user?.name}
           />
@@ -422,7 +437,7 @@ export default function MainPage() {
 
         {/* Left Panel (ContactBar / Profile) - Hidden on mobile if a chat is selected */}
         <div className={`w-full md:w-[280px] lg:w-[320px] xl:w-[420px] flex-shrink-0 flex flex-col h-[calc(100%-4.5rem)] md:h-full ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
-          {isProfileOpen ? (
+          {activeTab === "profile" || isProfileOpen ? (
             <UserProfileEdit
               user={user}
               onLogout={handleLogout}
@@ -431,6 +446,20 @@ export default function MainPage() {
             />
           ) : isContactInfoOpen ? (
             <ContactInfoPanel contact={selectedContact} onClose={() => setIsContactInfoOpen(false)} />
+          ) : activeTab === "status" ? (
+            <StatusSection
+              currentUser={user}
+              onBackToChats={() => setActiveTab("chats")}
+            />
+          ) : activeTab === "calls" ? (
+            <CallSection
+              contacts={contacts}
+              onStartCall={(contact, isVideo) => {
+                setContactToCall(contact);
+                setIsVideoCall(isVideo);
+                setIsCalling(true);
+              }}
+            />
           ) : (
             <ContactBar
               filteredContacts={filteredContacts}
