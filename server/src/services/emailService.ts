@@ -37,7 +37,20 @@ export async function sendOtpEmail(
   const apiKey = resolveResendApiKey(explicitApiKey);
   const normalizedEmail = toEmail.trim().toLowerCase();
 
-  const fromEmail = process.env.RESEND_FROM_EMAIL || "EchoChat <onboarding@resend.dev>";
+  // Determine sender: Resend strictly prohibits sending from @gmail.com or other public email domains
+  // unless a custom domain is verified. Automatically use onboarding@resend.dev if not a verified custom domain.
+  let fromEmail = (process.env.RESEND_FROM_EMAIL || "").trim();
+  const isPublicDomain =
+    fromEmail.includes("@gmail.com") ||
+    fromEmail.includes("@googlemail.com") ||
+    fromEmail.includes("@yahoo.") ||
+    fromEmail.includes("@outlook.") ||
+    fromEmail.includes("@hotmail.") ||
+    fromEmail.includes("@icloud.");
+
+  if (!fromEmail || isPublicDomain) {
+    fromEmail = "EchoChat <onboarding@resend.dev>";
+  }
 
   if (!apiKey) {
     console.log(`[EMAIL MOCK] ========================================`);
