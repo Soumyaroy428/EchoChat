@@ -5,6 +5,7 @@ import { Lock, User, ArrowRight, ArrowLeft, Mail, Phone } from "lucide-react";
 import { toast } from "sonner";
 import OtpModal from "./OtpModal";
 import { sendOtpRequest } from "../../lib/authApi";
+import { getApiBaseUrl } from "../../lib/utils";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -52,7 +53,7 @@ export default function AuthPage() {
           };
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${endpoint}`,
+        `${getApiBaseUrl()}${endpoint}`,
         {
           method: "POST",
           headers: {
@@ -72,17 +73,19 @@ export default function AuthPage() {
         // Resolve email to receive OTP
         const recipient =
           data.email ||
-          (formData.emailOrMobile.includes("@") ? formData.emailOrMobile.trim() : formData.emailOrMobile.trim());
+          (formData.emailOrMobile.includes("@") ? formData.emailOrMobile.trim() : "");
 
         setOtpRecipient(recipient);
         setShowOtpModal(true);
 
-        try {
-          await sendOtpRequest(recipient);
-          toast.success("Verification code sent to your email!");
-        } catch (err: any) {
-          console.error("Send OTP error", err);
-          toast.error(err.message || "Failed to send verification email");
+        if (recipient && recipient.includes("@")) {
+          try {
+            await sendOtpRequest(recipient);
+            toast.success(`Verification code sent to ${recipient}!`);
+          } catch (err: any) {
+            console.error("Send OTP error", err);
+            toast.error(err.message || "Failed to send verification email");
+          }
         }
       } else {
         // Registration successful

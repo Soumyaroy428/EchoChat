@@ -115,6 +115,11 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
+    // Auto-update email if user logged in with email but had none on file
+    if (!user.email && identifier.includes("@")) {
+      user.email = identifier.toLowerCase();
+    }
+
     user.isOnline = true;
     user.lastSeen = new Date();
     await user.save();
@@ -122,11 +127,13 @@ export const login = async (req: Request, res: Response) => {
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
 
     const targetEmail = user.email || (user.mobile.includes("@") ? user.mobile : "");
+    const needsEmail = !targetEmail;
 
     res.json({
       message: "Login successful",
       token,
       email: targetEmail,
+      needsEmail,
       user: {
         id: user._id,
         mobile: user.mobile,
@@ -360,10 +367,20 @@ export const sendOtp = async (req: Request, res: Response) => {
     // Send email via Resend
     const emailResult = await sendOtpEmail(targetEmail, otp, clientApiKey);
 
+    if (!emailResult.success) {
+      console.error(`[sendOtp] Resend delivery failed for ${targetEmail}:`, emailResult.error);
+      return res.status(400).json({
+        error: emailResult.error || "Failed to deliver OTP email via Resend",
+        provider: emailResult.provider,
+        email: targetEmail,
+      });
+    }
+
     res.json({
       message: "OTP sent successfully to your email",
       email: targetEmail,
       provider: emailResult.provider,
+      id: emailResult.id,
       ...(process.env.NODE_ENV !== "production" ? { otp } : {}),
     });
   } catch (error) {

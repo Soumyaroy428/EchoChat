@@ -46,6 +46,14 @@ export async function sendOtpEmail(
     console.log(`[EMAIL MOCK] (Set RESEND_API_KEY in Render environment to send real email)`);
     console.log(`[EMAIL MOCK] ========================================`);
 
+    if (process.env.NODE_ENV === "production") {
+      return {
+        success: false,
+        provider: "mock",
+        error: "RESEND_API_KEY is not configured in Render environment variables",
+      };
+    }
+
     return {
       success: true,
       provider: "mock",
@@ -53,7 +61,7 @@ export async function sendOtpEmail(
     };
   }
 
-  console.log(`[Resend] Sending OTP to ${normalizedEmail} via Resend API...`);
+  console.log(`[Resend] Sending OTP to ${normalizedEmail} via Resend API (Sender: ${fromEmail})...`);
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -115,12 +123,15 @@ export async function sendOtpEmail(
     const json = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      const errorMsg = json?.message || `HTTP ${res.status}`;
-      console.error(`[Resend] Failed to deliver email (${res.status}):`, errorMsg);
+      let rawError = json?.message || `HTTP ${res.status}`;
+      if (typeof rawError === "string" && rawError.includes("can only send testing emails to your own email address")) {
+        rawError = `${rawError} (Note: Resend free tier domain onboarding@resend.dev only allows sending to the email registered on your Resend account. Verify a custom domain at resend.com/domains to send to any recipient).`;
+      }
+      console.error(`[Resend] Failed to deliver email (${res.status}):`, rawError);
       return {
         success: false,
         provider: "resend",
-        error: errorMsg,
+        error: rawError,
       };
     }
 

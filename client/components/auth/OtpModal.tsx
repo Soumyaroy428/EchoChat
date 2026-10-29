@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { sendOtpRequest } from "../../lib/authApi";
+import { getApiBaseUrl } from "../../lib/utils";
 import { Mail } from "lucide-react";
 
 type Props = {
@@ -13,22 +14,33 @@ type Props = {
 };
 
 export default function OtpModal({ recipient, mobile, onClose, onVerified }: Props) {
-  const target = (recipient || mobile || "").trim();
+  const initialTarget = (recipient || mobile || "").trim();
+  const [emailInput, setEmailInput] = useState(initialTarget.includes("@") ? initialTarget : "");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
 
+  const activeEmail = emailInput.trim().toLowerCase();
+
   const handleVerify = async () => {
+    if (!activeEmail || !activeEmail.includes("@")) {
+      toast.error("Please provide a valid email address");
+      return;
+    }
     if (!otp || otp.trim().length === 0) {
       toast.error("Please enter the 6-digit OTP");
       return;
     }
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/verifyOtp`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/auth/verifyOtp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: target, phonenumber: target, otp: otp.trim() }),
+        body: JSON.stringify({
+          email: activeEmail,
+          phonenumber: initialTarget || activeEmail,
+          otp: otp.trim(),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "OTP verification failed");
@@ -44,12 +56,16 @@ export default function OtpModal({ recipient, mobile, onClose, onVerified }: Pro
   };
 
   const handleResend = async () => {
+    if (!activeEmail || !activeEmail.includes("@")) {
+      toast.error("Please enter a valid email address to receive the OTP");
+      return;
+    }
     setResendLoading(true);
     try {
-      await sendOtpRequest(target);
-      toast.success("OTP resent to your email");
+      await sendOtpRequest(activeEmail);
+      toast.success(`OTP sent to ${activeEmail}`);
     } catch (err: any) {
-      toast.error(err.message || "Could not resend OTP");
+      toast.error(err.message || "Could not send OTP");
     } finally {
       setResendLoading(false);
     }
@@ -69,9 +85,24 @@ export default function OtpModal({ recipient, mobile, onClose, onVerified }: Pro
           </div>
         </div>
 
-        <p className="text-sm text-gray-300 mb-4">
-          An OTP code was sent to <strong className="text-emerald-400">{target}</strong>. Please check your inbox or spam folder.
-        </p>
+        {initialTarget.includes("@") ? (
+          <p className="text-sm text-gray-300 mb-4">
+            An OTP code was sent to <strong className="text-emerald-400">{initialTarget}</strong>. Please check your inbox or spam folder.
+          </p>
+        ) : (
+          <div className="mb-4">
+            <p className="text-sm text-gray-300 mb-2">
+              Please confirm your email address to receive your 6-digit verification code:
+            </p>
+            <input
+              type="email"
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              placeholder="e.g. yourname@gmail.com"
+              className="w-full bg-[#0a111a] border border-[#223348] rounded-xl py-2.5 px-3 text-white text-sm focus:outline-none focus:border-blue-500 placeholder-gray-500"
+            />
+          </div>
+        )}
 
         <input
           type="text"
@@ -96,7 +127,7 @@ export default function OtpModal({ recipient, mobile, onClose, onVerified }: Pro
             disabled={resendLoading}
             className="flex-1 bg-[#1e2a3a] hover:bg-[#27374d] disabled:opacity-60 text-gray-200 font-medium py-2.5 rounded-xl transition"
           >
-            {resendLoading ? "Resending..." : "Resend Code"}
+            {resendLoading ? "Sending..." : "Resend Code"}
           </button>
         </div>
 
