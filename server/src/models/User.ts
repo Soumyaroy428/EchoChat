@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IUser extends Document {
   mobile: string;
+  email?: string;
   password: string;
   name?: string;
   avatar?: {
@@ -29,6 +30,12 @@ const UserSchema: Schema = new Schema(
       required: true,
       unique: true,
       trim: true,
+    },
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      default: "",
     },
     password: {
       type: String,

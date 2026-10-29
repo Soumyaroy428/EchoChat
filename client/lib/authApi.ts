@@ -1,13 +1,13 @@
 /**
- * Helper to dispatch OTP requests.
- * Prioritizes the Vercel-hosted API route (/api/auth/sendOtp) which has access
- * to Vercel environment variables like APITXT_API_KEY, with automatic fallback
- * to the direct backend URL.
+ * Helper to dispatch Email OTP requests via Resend.
+ * Uses the Vercel-hosted API route (/api/auth/sendOtp) which forwards
+ * RESEND_API_KEY from environment variables to the backend server.
  */
-export async function sendOtpRequest(mobile: string): Promise<any> {
-  const apitxtKey = (
-    process.env.NEXT_PUBLIC_APITXT_API_KEY ||
-    process.env.NEXT_PUBLIC_APITXT_KEY ||
+export async function sendOtpRequest(emailOrIdentifier: string): Promise<any> {
+  const normalized = emailOrIdentifier.trim();
+  const resendKey = (
+    process.env.NEXT_PUBLIC_RESEND_API_KEY ||
+    process.env.NEXT_PUBLIC_RESEND_KEY ||
     ""
   ).trim();
 
@@ -17,12 +17,13 @@ export async function sendOtpRequest(mobile: string): Promise<any> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(apitxtKey ? { "x-apitxt-key": apitxtKey } : {}),
+        ...(resendKey ? { "x-resend-key": resendKey } : {}),
       },
       body: JSON.stringify({
-        phonenumber: mobile,
-        mobile,
-        ...(apitxtKey ? { apitxtApiKey: apitxtKey } : {}),
+        email: normalized,
+        phonenumber: normalized,
+        mobile: normalized,
+        ...(resendKey ? { resendApiKey: resendKey } : {}),
       }),
     });
 
@@ -42,18 +43,19 @@ export async function sendOtpRequest(mobile: string): Promise<any> {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(apitxtKey ? { "x-apitxt-key": apitxtKey } : {}),
+      ...(resendKey ? { "x-resend-key": resendKey } : {}),
     },
     body: JSON.stringify({
-      phonenumber: mobile,
-      mobile,
-      ...(apitxtKey ? { apitxtApiKey: apitxtKey } : {}),
+      email: normalized,
+      phonenumber: normalized,
+      mobile: normalized,
+      ...(resendKey ? { resendApiKey: resendKey } : {}),
     }),
   });
 
   const data = await directRes.json().catch(() => ({}));
   if (!directRes.ok) {
-    throw new Error(data.error || "Failed to send OTP");
+    throw new Error(data.error || "Failed to send OTP to your email");
   }
   return data;
 }

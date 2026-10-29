@@ -1,10 +1,15 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-
 const otpSchema = new Schema({
   phonenumber: {
     type: String,
-    required: true,
+    default: "",
+    index: true,
+  },
+  email: {
+    type: String,
+    default: "",
+    index: true,
   },
   otp: {
     type: String,
@@ -12,8 +17,7 @@ const otpSchema = new Schema({
   },
   otpExpiresAt: {
     type: Date,
-    default: Date.now,
-    get: (otpExpiresAt) => otpExpiresAt.getTime() + 5 * 60 * 1000, // 5 minutes in milliseconds
+    default: () => new Date(Date.now() + 5 * 60 * 1000),
   },
   createdAt: {
     type: Date,

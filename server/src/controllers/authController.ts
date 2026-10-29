@@ -4,7 +4,8 @@ import jwt from "jsonwebtoken";
 import User from "../models/User";
 import otpModel from "../models/otp";
 import otpGenerator from "otp-generator";
-import { sendOtpSms } from "../services/smsService";
+import { sendOtpEmail } from "../services/emailService";
+import mongoose from "mongoose";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -20,6 +21,7 @@ const avatarUrl = (avatar?: { url?: string }) => {
 const profilePayload = (user: any) => ({
   id: user._id,
   mobile: user.mobile,
+  email: user.email || "",
   name: user.name,
   avatar: avatarUrl(user.avatar),
   isOnline: user.isOnline,
@@ -32,25 +34,31 @@ const profilePayload = (user: any) => ({
 
 export const register = async (req: Request, res: Response) => {
   try {
-    console.log("📝 Registration attempt:", { mobile: req.body.mobile });
-    const { mobile, password, name } = req.body;
+    const { password, name } = req.body;
+    const email = (req.body.email || "").trim().toLowerCase();
+    const rawMobile = (req.body.mobile || "").trim();
+    const mobile = rawMobile || email;
 
-    if (!mobile || !password) {
-      console.log("❌ Missing required fields");
-      return res.status(400).json({ error: "Mobile number and password are required" });
+    console.log("📝 Registration attempt:", { email, mobile });
+
+    if ((!mobile && !email) || !password) {
+      return res.status(400).json({ error: "Email or mobile number, and password are required" });
     }
 
-    const existingUser = await User.findOne({ mobile });
+    const query: any[] = [];
+    if (email) query.push({ email });
+    if (mobile) query.push({ mobile });
+
+    const existingUser = await User.findOne({ $or: query });
     if (existingUser) {
-      console.log("❌ User already exists:", mobile);
-      return res.status(400).json({ error: "User already exists with this mobile number" });
+      return res.status(400).json({ error: "User already exists with this email or mobile" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log("✅ Password hashed successfully");
 
     const user = new User({
       mobile,
+      email: email || (mobile.includes("@") ? mobile.toLowerCase() : ""),
       password: hashedPassword,
       name: name || "",
       isOnline: true,
@@ -61,7 +69,6 @@ export const register = async (req: Request, res: Response) => {
     console.log("✅ User saved to database:", user._id);
 
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
-    console.log("✅ JWT token generated");
 
     res.status(201).json({
       message: "User registered successfully",
@@ -69,6 +76,7 @@ export const register = async (req: Request, res: Response) => {
       user: {
         id: user._id,
         mobile: user.mobile,
+        email: user.email,
         name: user.name,
         avatar: avatarUrl(user.avatar),
       },
@@ -81,40 +89,48 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    console.log("🔐 Login attempt:", { mobile: req.body.mobile });
-    const { mobile, password } = req.body;
+    const { password } = req.body;
+    const identifier = (req.body.email || req.body.mobile || req.body.phonenumber || "").trim();
 
-    if (!mobile || !password) {
-      console.log("❌ Missing required fields");
-      return res.status(400).json({ error: "Mobile number and password are required" });
+    console.log("🔐 Login attempt:", { identifier });
+
+    if (!identifier || !password) {
+      return res.status(400).json({ error: "Email or mobile number, and password are required" });
     }
 
-    const user = await User.findOne({ mobile });
+    const user = await User.findOne({
+      $or: [
+        { email: identifier.toLowerCase() },
+        { mobile: identifier },
+        { mobile: identifier.toLowerCase() },
+      ],
+    });
+
     if (!user) {
-      console.log("❌ User not found:", mobile);
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      console.log("❌ Invalid password for:", mobile);
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
     user.isOnline = true;
     user.lastSeen = new Date();
     await user.save();
-    console.log("✅ User updated as online:", user._id);
 
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
-    console.log("✅ JWT token generated");
+
+    const targetEmail = user.email || (user.mobile.includes("@") ? user.mobile : "");
 
     res.json({
       message: "Login successful",
       token,
+      email: targetEmail,
       user: {
         id: user._id,
         mobile: user.mobile,
+        email: user.email,
         name: user.name,
         avatar: avatarUrl(user.avatar),
       },
@@ -281,18 +297,35 @@ export const getAvatar = async (req: Request, res: Response) => {
 
 export const sendOtp = async (req: Request, res: Response) => {
   try {
-    const rawNumber = req.body.phonenumber || req.body.mobile;
+    const rawEmail = (req.body.email || "").trim().toLowerCase();
+    const rawNumber = (req.body.phonenumber || req.body.mobile || "").trim();
 
-    if (!rawNumber || typeof rawNumber !== "string") {
-      return res.status(400).json({ error: "Mobile number is required" });
+    let targetEmail = rawEmail || (rawNumber.includes("@") ? rawNumber.toLowerCase() : "");
+
+    // If only a phone number or userId was given, check if user has an email in DB
+    if (!targetEmail && rawNumber) {
+      const user = await User.findOne({
+        $or: [
+          { mobile: rawNumber },
+          { _id: mongoose.isValidObjectId(rawNumber) ? rawNumber : null },
+        ],
+      });
+      if (user?.email) {
+        targetEmail = user.email.toLowerCase();
+      } else if (user?.mobile && user.mobile.includes("@")) {
+        targetEmail = user.mobile.toLowerCase();
+      }
     }
 
-    const phonenumber = rawNumber.trim();
+    if (!targetEmail) {
+      return res.status(400).json({ error: "A valid email address is required to receive the OTP" });
+    }
 
-    // Check for explicit API key passed by proxy (e.g. from Vercel env)
+    // Check for explicit API key passed by proxy (e.g. from Vercel/Render env)
     const clientApiKey =
+      (req.headers["x-resend-key"] as string) ||
       (req.headers["x-apitxt-key"] as string) ||
-      (req.body.apitxtApiKey as string) ||
+      (req.body.resendApiKey as string) ||
       "";
 
     // Generate a random 6-digit OTP
@@ -303,22 +336,34 @@ export const sendOtp = async (req: Request, res: Response) => {
       specialChars: false,
     });
 
-    console.log(`[sendOtp] Generating OTP for ${phonenumber}`);
+    console.log(`[sendOtp] Generating Email OTP for ${targetEmail}`);
 
     const currentTime = new Date();
 
     await otpModel.findOneAndUpdate(
-      { phonenumber },
-      { otp, createdAt: new Date(currentTime.getTime()) },
+      {
+        $or: [
+          { email: targetEmail },
+          { phonenumber: targetEmail },
+          { phonenumber: rawNumber || targetEmail },
+        ],
+      },
+      {
+        email: targetEmail,
+        phonenumber: rawNumber || targetEmail,
+        otp,
+        createdAt: currentTime,
+      },
       { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
     );
 
-    // Send SMS via APITxT (or fallback to Twilio / mock in dev)
-    const smsResult = await sendOtpSms(phonenumber, otp, clientApiKey);
+    // Send email via Resend
+    const emailResult = await sendOtpEmail(targetEmail, otp, clientApiKey);
 
     res.json({
-      message: "OTP sent successfully",
-      provider: smsResult.provider,
+      message: "OTP sent successfully to your email",
+      email: targetEmail,
+      provider: emailResult.provider,
       ...(process.env.NODE_ENV !== "production" ? { otp } : {}),
     });
   } catch (error) {
@@ -329,61 +374,71 @@ export const sendOtp = async (req: Request, res: Response) => {
 
 export const verifyOtp = async (req: Request, res: Response) => {
   try {
-    const phonenumber = (req.body.phonenumber || req.body.mobile || "").trim();
-    const otp = req.body.otp;
+    const rawInput = (req.body.email || req.body.phonenumber || req.body.mobile || "").trim();
+    const otp = (req.body.otp || "").toString().trim();
 
-    if (!phonenumber || !otp) {
-      return res.status(400).json({ error: "Phone number and OTP are required" });
+    if (!rawInput || !otp) {
+      return res.status(400).json({ error: "Email/Phone number and OTP are required" });
     }
 
-    const record = await otpModel.findOne({ phonenumber });
+    const email = rawInput.toLowerCase();
+
+    const record = await otpModel.findOne({
+      $or: [
+        { email },
+        { phonenumber: rawInput },
+        { phonenumber: email },
+      ],
+    });
+
     if (!record) {
       return res.status(400).json({ error: "OTP not found or expired" });
     }
 
-    // Check expiry: treat createdAt + 5 minutes as expiry
+    // Check expiry: 5 minutes
     const createdAt = record.createdAt ? new Date(record.createdAt) : null;
     if (!createdAt) {
-      return res.status(400).json({ error: 'Invalid OTP record' });
+      return res.status(400).json({ error: "Invalid OTP record" });
     }
 
     const now = new Date();
     const diffMs = now.getTime() - createdAt.getTime();
     const fiveMinutesMs = 5 * 60 * 1000;
     if (diffMs > fiveMinutesMs) {
-      // remove expired OTP
-      await otpModel.deleteOne({ phonenumber });
-      return res.status(400).json({ error: 'OTP expired' });
+      await otpModel.deleteOne({ _id: record._id });
+      return res.status(400).json({ error: "OTP expired. Please request a new one." });
     }
 
     if (record.otp !== String(otp)) {
-      return res.status(400).json({ error: 'Invalid OTP' });
+      return res.status(400).json({ error: "Invalid OTP" });
     }
 
     // OTP is valid - delete it
-    await otpModel.deleteOne({ phonenumber });
+    await otpModel.deleteOne({ _id: record._id });
 
-    // Find the user and sign a token
-    const user = await User.findOne({ mobile: phonenumber });
+    // Find user by email or mobile
+    const user = await User.findOne({
+      $or: [
+        { email },
+        { mobile: rawInput },
+        { mobile: email },
+      ],
+    });
+
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
 
     res.json({
-      message: 'OTP verified',
+      message: "OTP verified",
       token,
-      user: {
-        id: user._id,
-        mobile: user.mobile,
-        name: user.name,
-        avatar: avatarUrl(user.avatar),
-      },
+      user: profilePayload(user),
     });
   } catch (error) {
-    console.error('Verify OTP error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Verify OTP error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 

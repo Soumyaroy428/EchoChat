@@ -176,13 +176,9 @@ PORT=5000
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/echochat?retryWrites=true&w=majority
 JWT_SECRET=your-super-strong-jwt-secret-key-32-chars-min
 
-# APITxT (SMS OTP) - https://apitxt.com/apikey (Primary)
-APITXT_API_KEY=your-apitxt-api-key
-
-# Twilio (SMS OTP) - Optional fallback
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-TWILIO_PHONE_NUMBER=
+# Resend (Email OTP) - https://resend.com (Render Environment Config)
+RESEND_API_KEY=re_your_resend_api_key
+RESEND_FROM_EMAIL=EchoChat <onboarding@resend.dev>
 
 # Cloudinary CDN - Optional (defaults to secure local uploads/ storage)
 CLOUDINARY_CLOUD_NAME=
@@ -202,8 +198,8 @@ Create `client/.env.local`:
 NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
 NEXT_PUBLIC_API_URL=http://localhost:5000
 
-# APITxT (SMS OTP) - Can be placed in Vercel environment variables
-APITXT_API_KEY=your-apitxt-api-key
+# Resend (Email OTP) - Can also be set in Vercel environment variables
+RESEND_API_KEY=re_your_resend_api_key
 ```
 
 ---

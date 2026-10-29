@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, Lock, User, ArrowRight, ArrowLeft } from "lucide-react";
+import { Lock, User, ArrowRight, ArrowLeft, Mail, Phone } from "lucide-react";
 import { toast } from "sonner";
 import OtpModal from "./OtpModal";
 import { sendOtpRequest } from "../../lib/authApi";
@@ -9,6 +9,8 @@ import { sendOtpRequest } from "../../lib/authApi";
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
+    emailOrMobile: "",
+    email: "",
     mobile: "",
     password: "",
     name: "",
@@ -18,7 +20,7 @@ export default function AuthPage() {
 
   // OTP modal state
   const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otpMobile, setOtpMobile] = useState("");
+  const [otpRecipient, setOtpRecipient] = useState("");
 
   const handleOtpVerified = (token: string, user: any) => {
     // save token and user after successful OTP verification
@@ -28,56 +30,68 @@ export default function AuthPage() {
     window.location.reload();
   };
 
-  
-//this is use for submit the auth data
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      // API call: Determine endpoint based on login/register mode
       const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
-      
-      // API call: Send authentication request to backend server
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
 
-      // API call: Parse response data
+      const payload = isLogin
+        ? {
+            email: formData.emailOrMobile.trim(),
+            mobile: formData.emailOrMobile.trim(),
+            password: formData.password,
+          }
+        : {
+            email: formData.email.trim().toLowerCase(),
+            mobile: formData.mobile.trim() || formData.email.trim().toLowerCase(),
+            password: formData.password,
+            name: formData.name.trim(),
+          };
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${endpoint}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
       const data = await response.json();
 
-      // API call: Check for errors in response
       if (!response.ok) {
         throw new Error(data.error || "Authentication failed");
       }
 
-      // For login: open OTP modal and send OTP. For register: keep original behavior.
       if (isLogin) {
-        // open OTP modal and request OTP from server
-        setOtpMobile(formData.mobile);
+        // Resolve email to receive OTP
+        const recipient =
+          data.email ||
+          (formData.emailOrMobile.includes("@") ? formData.emailOrMobile.trim() : formData.emailOrMobile.trim());
+
+        setOtpRecipient(recipient);
         setShowOtpModal(true);
 
         try {
-          await sendOtpRequest(formData.mobile);
-          toast.success("OTP sent - please verify");
+          await sendOtpRequest(recipient);
+          toast.success("Verification code sent to your email!");
         } catch (err: any) {
           console.error("Send OTP error", err);
-          toast.error(err.message || "Failed to send OTP");
+          toast.error(err.message || "Failed to send verification email");
         }
       } else {
-        // registration flow: save token and reload
+        // Registration successful
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
-        toast.success("Registration successful!");
+        toast.success("Account created successfully!");
         window.location.reload();
       }
     } catch (err: any) {
-      // Show error toast
       toast.error(err.message || "Authentication failed");
       setError(err.message);
     } finally {
@@ -93,38 +107,94 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080000] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#05080d] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src="/logo.svg" alt="EchoChat Logo" className="w-450 h-50 mx-auto mb-4" />
-          <p className="text-gray-400">
-            {isLogin ? "Welcome back! Login to continue" : "Create your account"}
+          <img src="/logo.svg" alt="EchoChat Logo" className="w-48 h-14 mx-auto mb-3" />
+          <p className="text-gray-400 text-sm">
+            {isLogin ? "Welcome back! Login to continue" : "Create your EchoChat account"}
           </p>
         </div>
 
         {/* Form */}
-        <div className="bg-[#1c1c1c] rounded-2xl p-8 border border-[#2a2a2a]">
+        <div className="bg-[#0b1420] rounded-2xl p-8 border border-[#1b2b3d] shadow-xl">
           <h2 className="text-2xl font-semibold text-white mb-6">
-            {isLogin ? "Login" : "Register"}
+            {isLogin ? "Sign In" : "Register"}
           </h2>
-
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Full Name (Optional)
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="e.g. Alex Morgan"
+                      className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Email Address *
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="name@example.com"
+                      required
+                      className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Mobile Number (Optional)
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="tel"
+                      name="mobile"
+                      value={formData.mobile}
+                      onChange={handleChange}
+                      placeholder="+1234567890"
+                      className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {isLogin && (
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Name (Optional)
+                  Email or Phone Number *
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
+                    name="emailOrMobile"
+                    value={formData.emailOrMobile}
                     onChange={handleChange}
-                    placeholder="Enter your name"
-                    className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                    placeholder="Enter your email or phone"
+                    required
+                    className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
                   />
                 </div>
               </div>
@@ -132,37 +202,19 @@ export default function AuthPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Mobile Number *
-              </label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="tel"
-                  name="mobile"
-                  value={formData.mobile}
-                  onChange={handleChange}
-                  placeholder="Enter mobile number"
-                  required
-                  className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Password *
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                 <input
                   type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Enter password (min 6 characters)"
+                  placeholder="Min 6 characters"
                   required
                   minLength={6}
-                  className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                  className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
                 />
               </div>
             </div>
@@ -170,14 +222,14 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 mt-2"
             >
               {loading ? (
                 "Processing..."
               ) : (
                 <>
-                  {isLogin ? "Login" : "Register"}
-                  <ArrowRight size={20} />
+                  {isLogin ? "Sign In" : "Create Account"}
+                  <ArrowRight size={18} />
                 </>
               )}
             </button>
@@ -189,7 +241,7 @@ export default function AuthPage() {
                 setIsLogin(!isLogin);
                 setError("");
               }}
-              className="text-gray-400 hover:text-white transition-colors flex items-center justify-center gap-2 mx-auto"
+              className="text-gray-400 hover:text-white text-sm transition-colors flex items-center justify-center gap-2 mx-auto"
             >
               {isLogin ? (
                 <>
@@ -199,7 +251,7 @@ export default function AuthPage() {
               ) : (
                 <>
                   <ArrowLeft size={16} />
-                  Already have an account? Login
+                  Already have an account? Sign In
                 </>
               )}
             </button>
@@ -209,12 +261,11 @@ export default function AuthPage() {
 
       {showOtpModal && (
         <OtpModal
-          mobile={otpMobile}
+          recipient={otpRecipient}
           onClose={() => setShowOtpModal(false)}
           onVerified={handleOtpVerified}
         />
       )}
-
     </div>
   );
 }

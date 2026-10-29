@@ -33,7 +33,7 @@
 - **Real-Time Gateway:** Socket.IO Server (`socket.io` v4.8) with authenticated handshake & room routing
 - **Database:** MongoDB Atlas (managed via Mongoose ODM v9 and Prisma v7)
 - **Authentication:** JWT (JSON Web Tokens) with 7-day expiry and bcrypt password hashing
-- **OTP Verification:** APITxT SMS Gateway (https://apitxt.com/api/sendOTP) with Twilio fallback & in-memory/DB OTP lifecycle
+- **OTP Verification:** Resend Email API (https://resend.com) with HTML templates & in-memory/DB OTP lifecycle
 - **Push Engine:** `web-push` library with VAPID key pair exchange
 - **Media Storage Pipeline:** Dual-tier architecture using Cloudinary CDN (`cloudinary` v2.10) with automatic fallback to authenticated local volume storage (`uploads/`)
 - **Security & Rate Limiting:** Helmet HTTP headers, CORS whitelisting, Express Rate Limiters partitioned per critical route

@@ -5,24 +5,17 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const rawNumber = body.phonenumber || body.mobile;
+    const email = body.email || body.phonenumber || body.mobile;
 
-    if (!rawNumber || typeof rawNumber !== "string") {
-      return NextResponse.json({ error: "Mobile number is required" }, { status: 400 });
+    if (!email || typeof email !== "string") {
+      return NextResponse.json({ error: "Email address is required" }, { status: 400 });
     }
 
-    // Read APITxT API key from Vercel environment variables
-    const apitxtKey = (
-      process.env.APITXT_API_KEY ||
-      process.env.APITXT_KEY ||
-      process.env.APITXT_AUTH_KEY ||
-      process.env.API_TXT_KEY ||
-      process.env.API_TXT_API_KEY ||
-      process.env.NEXT_PUBLIC_APITXT_API_KEY ||
-      process.env.NEXT_PUBLIC_APITXT_KEY ||
-      process.env.NEXT_PUBLIC_APITXT_AUTH_KEY ||
-      process.env.APITXT_TOKEN ||
-      process.env.SMS_API_KEY ||
+    // Read Resend API key from Vercel / server environment variables
+    const resendKey = (
+      process.env.RESEND_API_KEY ||
+      process.env.RESEND_KEY ||
+      process.env.NEXT_PUBLIC_RESEND_API_KEY ||
       ""
     ).trim();
 
@@ -44,8 +37,8 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(
-      `[Vercel API Route] Forwarding sendOtp for ${rawNumber} to ${backendBase}/api/auth/sendOtp (Key configured: ${Boolean(
-        apitxtKey
+      `[Vercel API Route] Forwarding sendOtp for ${email} to ${backendBase}/api/auth/sendOtp (Key configured: ${Boolean(
+        resendKey
       )})`
     );
 
@@ -53,12 +46,13 @@ export async function POST(req: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(apitxtKey ? { "x-apitxt-key": apitxtKey } : {}),
+        ...(resendKey ? { "x-resend-key": resendKey } : {}),
       },
       body: JSON.stringify({
-        phonenumber: rawNumber,
-        mobile: rawNumber,
-        ...(apitxtKey ? { apitxtApiKey: apitxtKey } : {}),
+        email,
+        phonenumber: email,
+        mobile: email,
+        ...(resendKey ? { resendApiKey: resendKey } : {}),
       }),
     });
 

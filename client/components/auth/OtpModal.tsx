@@ -3,21 +3,24 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { sendOtpRequest } from "../../lib/authApi";
+import { Mail } from "lucide-react";
 
 type Props = {
-  mobile: string;
+  recipient?: string;
+  mobile?: string;
   onClose: () => void;
   onVerified: (token: string, user: any) => void;
 };
 
-export default function OtpModal({ mobile, onClose, onVerified }: Props) {
+export default function OtpModal({ recipient, mobile, onClose, onVerified }: Props) {
+  const target = (recipient || mobile || "").trim();
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
 
   const handleVerify = async () => {
     if (!otp || otp.trim().length === 0) {
-      toast.error("Please enter the OTP");
+      toast.error("Please enter the 6-digit OTP");
       return;
     }
     setLoading(true);
@@ -25,12 +28,12 @@ export default function OtpModal({ mobile, onClose, onVerified }: Props) {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/verifyOtp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phonenumber: mobile, otp }),
+        body: JSON.stringify({ email: target, phonenumber: target, otp: otp.trim() }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "OTP verification failed");
 
-      toast.success("OTP verified — logged in");
+      toast.success("OTP verified — Welcome to EchoChat!");
       onVerified(data.token, data.user);
       onClose();
     } catch (err: any) {
@@ -43,8 +46,8 @@ export default function OtpModal({ mobile, onClose, onVerified }: Props) {
   const handleResend = async () => {
     setResendLoading(true);
     try {
-      await sendOtpRequest(mobile);
-      toast.success("OTP resent");
+      await sendOtpRequest(target);
+      toast.success("OTP resent to your email");
     } catch (err: any) {
       toast.error(err.message || "Could not resend OTP");
     } finally {
@@ -53,40 +56,52 @@ export default function OtpModal({ mobile, onClose, onVerified }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-[#1c1c1c] rounded-2xl p-6 w-full max-w-md border border-[#2a2a2a]">
-        <h3 className="text-lg font-semibold text-white mb-2">Verify OTP</h3>
-        <p className="text-sm text-gray-300 mb-4">An OTP was sent to {mobile}. Enter it below to continue.</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-[#141b26] rounded-2xl p-6 w-full max-w-md border border-[#223348] shadow-2xl">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
+            <Mail size={22} />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-white">Verify Your Code</h3>
+            <p className="text-xs text-gray-400">Security verification</p>
+          </div>
+        </div>
+
+        <p className="text-sm text-gray-300 mb-4">
+          An OTP code was sent to <strong className="text-emerald-400">{target}</strong>. Please check your inbox or spam folder.
+        </p>
 
         <input
           type="text"
           value={otp}
-          onChange={(e) => setOtp(e.target.value)}
+          maxLength={6}
+          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
           placeholder="Enter 6-digit OTP"
-          className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-lg py-3 px-4 text-white placeholder-gray-400 mb-4"
+          className="w-full bg-[#0a111a] border border-[#223348] rounded-xl py-3 px-4 text-center tracking-[8px] font-mono text-xl text-white placeholder:tracking-normal placeholder:font-sans placeholder:text-sm placeholder-gray-500 mb-4 focus:outline-none focus:border-blue-500"
         />
 
         <div className="flex gap-2">
           <button
             onClick={handleVerify}
             disabled={loading}
-            className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 text-white py-2 rounded-lg"
+            className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white font-medium py-2.5 rounded-xl transition"
           >
-            {loading ? "Verifying..." : "Verify"}
+            {loading ? "Verifying..." : "Verify Code"}
           </button>
 
           <button
             onClick={handleResend}
             disabled={resendLoading}
-            className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-60 text-white py-2 rounded-lg"
+            className="flex-1 bg-[#1e2a3a] hover:bg-[#27374d] disabled:opacity-60 text-gray-200 font-medium py-2.5 rounded-xl transition"
           >
-            {resendLoading ? "Resending..." : "Resend"}
+            {resendLoading ? "Resending..." : "Resend Code"}
           </button>
         </div>
 
         <div className="mt-4 text-right">
-          <button onClick={onClose} className="text-gray-400 hover:text-white">Cancel</button>
+          <button onClick={onClose} className="text-sm text-gray-400 hover:text-white transition">Cancel</button>
         </div>
       </div>
     </div>
