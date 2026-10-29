@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email address is required" }, { status: 400 });
     }
 
-    // Read Resend configuration directly from Vercel environment variables
+    // Read Resend and Gmail SMTP configuration from Vercel environment variables
     const resendKey = (
       process.env.RESEND_API_KEY ||
       process.env.RESEND_KEY ||
@@ -24,6 +24,20 @@ export async function POST(req: NextRequest) {
       process.env.NEXT_PUBLIC_RESEND_FROM_EMAIL ||
       ""
     ).trim();
+
+    const smtpEmail = (
+      process.env.SMTP_EMAIL ||
+      process.env.GMAIL_USER ||
+      process.env.SMTP_USER ||
+      ""
+    ).trim();
+
+    const smtpPassword = (
+      process.env.SMTP_PASSWORD ||
+      process.env.GMAIL_APP_PASSWORD ||
+      process.env.SMTP_PASS ||
+      ""
+    ).trim().replace(/\s+/g, "");
 
     // Determine target backend server URL
     const backendEnv =
@@ -47,6 +61,8 @@ export async function POST(req: NextRequest) {
     };
     if (resendKey) headers["x-resend-key"] = resendKey;
     if (resendFrom) headers["x-resend-from"] = resendFrom;
+    if (smtpEmail) headers["x-smtp-email"] = smtpEmail;
+    if (smtpPassword) headers["x-smtp-password"] = smtpPassword;
 
     const response = await fetch(`${backendBase}/api/auth/sendOtp`, {
       method: "POST",
@@ -57,6 +73,8 @@ export async function POST(req: NextRequest) {
         mobile: email.trim(),
         ...(resendKey ? { resendApiKey: resendKey } : {}),
         ...(resendFrom ? { resendFromEmail: resendFrom } : {}),
+        ...(smtpEmail ? { smtpEmail } : {}),
+        ...(smtpPassword ? { smtpPassword } : {}),
       }),
     });
 

@@ -328,7 +328,7 @@ export const sendOtp = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "A valid email address is required to receive the OTP" });
     }
 
-    // Read Resend configuration passed from proxy (Vercel) or server environment
+    // Read email configuration passed from proxy (Vercel) or server environment
     const clientApiKey =
       (req.headers["x-resend-key"] as string) ||
       (req.body.resendApiKey as string) ||
@@ -337,6 +337,16 @@ export const sendOtp = async (req: Request, res: Response) => {
     const clientFromEmail =
       (req.headers["x-resend-from"] as string) ||
       (req.body.resendFromEmail as string) ||
+      "";
+
+    const clientSmtpEmail =
+      (req.headers["x-smtp-email"] as string) ||
+      (req.body.smtpEmail as string) ||
+      "";
+
+    const clientSmtpPassword =
+      (req.headers["x-smtp-password"] as string) ||
+      (req.body.smtpPassword as string) ||
       "";
 
     // Generate a random 6-digit OTP
@@ -372,13 +382,18 @@ export const sendOtp = async (req: Request, res: Response) => {
       }
     );
 
-    // Send email via Resend
-    const emailResult = await sendOtpEmail(targetEmail, otp, clientApiKey, clientFromEmail);
+    // Send email via Gmail SMTP or Resend
+    const emailResult = await sendOtpEmail(targetEmail, otp, {
+      resendApiKey: clientApiKey,
+      resendFromEmail: clientFromEmail,
+      smtpEmail: clientSmtpEmail,
+      smtpPassword: clientSmtpPassword,
+    });
 
     if (!emailResult.success) {
-      console.error(`[sendOtp] Resend delivery failed for ${targetEmail}:`, emailResult.error);
+      console.error(`[sendOtp] Delivery failed for ${targetEmail}:`, emailResult.error);
       return res.status(400).json({
-        error: emailResult.error || "Failed to deliver OTP email via Resend",
+        error: emailResult.error || "Failed to deliver verification code",
         email: targetEmail,
       });
     }
@@ -386,6 +401,7 @@ export const sendOtp = async (req: Request, res: Response) => {
     res.json({
       message: "OTP sent successfully to your email",
       email: targetEmail,
+      provider: emailResult.provider,
       id: emailResult.id,
     });
   } catch (error) {

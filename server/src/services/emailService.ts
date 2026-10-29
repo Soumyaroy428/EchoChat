@@ -1,4 +1,5 @@
 import dns from "node:dns";
+import nodemailer from "nodemailer";
 
 try {
   dns.setDefaultResultOrder("ipv4first");
@@ -8,8 +9,40 @@ try {
 
 export interface EmailResult {
   success: boolean;
+  provider?: "smtp" | "resend";
   id?: string;
   error?: string;
+}
+
+export interface EmailConfigOverrides {
+  resendApiKey?: string;
+  resendFromEmail?: string;
+  smtpEmail?: string;
+  smtpPassword?: string;
+}
+
+export function resolveSmtpConfig(overrides?: EmailConfigOverrides) {
+  const email = (
+    overrides?.smtpEmail ||
+    process.env.SMTP_EMAIL ||
+    process.env.GMAIL_USER ||
+    process.env.SMTP_USER ||
+    ""
+  ).trim();
+
+  // Strip whitespace from Google App Passwords (Google shows them as 'xxxx xxxx xxxx xxxx')
+  const password = (
+    overrides?.smtpPassword ||
+    process.env.SMTP_PASSWORD ||
+    process.env.GMAIL_APP_PASSWORD ||
+    process.env.SMTP_PASS ||
+    ""
+  ).trim().replace(/\s+/g, "");
+
+  const host = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
+  const port = Number(process.env.SMTP_PORT) || 465;
+
+  return { email, password, host, port, isConfigured: Boolean(email && password) };
 }
 
 export function resolveResendApiKey(explicitKey?: string): string {
@@ -33,8 +66,6 @@ export function resolveResendFromEmail(explicitFrom?: string): string {
     ""
   ).trim();
 
-  // If empty or an unverified public domain (e.g., @gmail.com) is supplied,
-  // use the verified onboarding domain provided by Resend
   const isPublicDomain =
     candidate.includes("@gmail.com") ||
     candidate.includes("@googlemail.com") ||
@@ -50,27 +81,8 @@ export function resolveResendFromEmail(explicitFrom?: string): string {
   return candidate;
 }
 
-/**
- * Sends an OTP email using the Resend API (https://resend.com)
- */
-export async function sendOtpEmail(
-  toEmail: string,
-  otp: string,
-  explicitApiKey?: string,
-  explicitFromEmail?: string
-): Promise<EmailResult> {
-  const apiKey = resolveResendApiKey(explicitApiKey);
-  const fromEmail = resolveResendFromEmail(explicitFromEmail);
-  const normalizedEmail = toEmail.trim().toLowerCase();
-
-  if (!apiKey) {
-    return {
-      success: false,
-      error: "RESEND_API_KEY is not configured in environment variables",
-    };
-  }
-
-  const htmlContent = `
+function getOtpHtml(otp: string): string {
+  return `
     <!DOCTYPE html>
     <html>
       <head>
@@ -104,57 +116,123 @@ export async function sendOtpEmail(
       </body>
     </html>
   `;
+}
 
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 12000);
+/**
+ * Dispatches an OTP verification email using Gmail SMTP (recommended) or Resend API
+ */
+export async function sendOtpEmail(
+  toEmail: string,
+  otp: string,
+  overrides?: EmailConfigOverrides
+): Promise<EmailResult> {
+  const normalizedEmail = toEmail.trim().toLowerCase();
+  const smtpConfig = resolveSmtpConfig(overrides);
+  const resendApiKey = resolveResendApiKey(overrides?.resendApiKey);
 
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "User-Agent": "EchoChat/1.0",
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [normalizedEmail],
+  // 1. Prioritize Gmail SMTP if configured
+  if (smtpConfig.isConfigured) {
+    try {
+      console.log(`[SMTP] Sending OTP to ${normalizedEmail} via Gmail SMTP (${smtpConfig.email})...`);
+
+      const transporter = nodemailer.createTransport({
+        host: smtpConfig.host,
+        port: smtpConfig.port,
+        secure: smtpConfig.port === 465, // true for 465, false for 587
+        auth: {
+          user: smtpConfig.email,
+          pass: smtpConfig.password,
+        },
+      });
+
+      const info = await transporter.sendMail({
+        from: `EchoChat <${smtpConfig.email}>`,
+        to: normalizedEmail,
         subject: `Your EchoChat Verification Code: ${otp}`,
-        html: htmlContent,
-      }),
-      signal: controller.signal,
-    });
+        html: getOtpHtml(otp),
+      });
 
-    clearTimeout(timeout);
-
-    const json = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      let rawError = json?.message || `HTTP ${res.status}`;
-      if (typeof rawError === "string" && rawError.includes("can only send testing emails to your own email address")) {
-        rawError = `${rawError} (Note: Resend free tier domain onboarding@resend.dev only allows sending to the email registered on your Resend account. Verify a custom domain at resend.com/domains to send to any recipient).`;
-      }
-      console.error(`[Resend] Delivery failed (${res.status}):`, rawError);
+      console.log(`[SMTP] Verification email sent to ${normalizedEmail}! MessageId:`, info.messageId);
+      return {
+        success: true,
+        provider: "smtp",
+        id: info.messageId,
+      };
+    } catch (err: any) {
+      console.error("[SMTP] Gmail SMTP delivery failed:", err?.message || err);
       return {
         success: false,
-        error: rawError,
+        provider: "smtp",
+        error: `Gmail SMTP failed: ${err?.message || "Check your SMTP_EMAIL and SMTP_PASSWORD Google App Password"}`,
       };
     }
-
-    console.log(`[Resend] Verification email dispatched to ${normalizedEmail}! ID:`, json?.id);
-    return {
-      success: true,
-      id: json?.id,
-    };
-  } catch (err: any) {
-    const errorMsg =
-      err?.name === "AbortError"
-        ? "Resend request timed out"
-        : err?.message || "Resend communication error";
-    console.error("[Resend] Network error:", errorMsg);
-    return {
-      success: false,
-      error: errorMsg,
-    };
   }
+
+  // 2. Fall back to Resend API if RESEND_API_KEY is configured
+  if (resendApiKey) {
+    const fromEmail = resolveResendFromEmail(overrides?.resendFromEmail);
+    console.log(`[Resend] Sending OTP to ${normalizedEmail} via Resend API (Sender: ${fromEmail})...`);
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          "Content-Type": "application/json",
+          "User-Agent": "EchoChat/1.0",
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [normalizedEmail],
+          subject: `Your EchoChat Verification Code: ${otp}`,
+          html: getOtpHtml(otp),
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        let rawError = json?.message || `HTTP ${res.status}`;
+        if (typeof rawError === "string" && rawError.includes("can only send testing emails to your own email address")) {
+          rawError = `${rawError} (Note: Configure Gmail SMTP via SMTP_EMAIL and SMTP_PASSWORD to send to any user's Gmail ID for free without needing a domain).`;
+        }
+        console.error(`[Resend] Delivery failed (${res.status}):`, rawError);
+        return {
+          success: false,
+          provider: "resend",
+          error: rawError,
+        };
+      }
+
+      console.log(`[Resend] Verification email dispatched to ${normalizedEmail}! ID:`, json?.id);
+      return {
+        success: true,
+        provider: "resend",
+        id: json?.id,
+      };
+    } catch (err: any) {
+      const errorMsg =
+        err?.name === "AbortError"
+          ? "Resend request timed out"
+          : err?.message || "Resend communication error";
+      console.error("[Resend] Network error:", errorMsg);
+      return {
+        success: false,
+        provider: "resend",
+        error: errorMsg,
+      };
+    }
+  }
+
+  // 3. No email provider configured
+  return {
+    success: false,
+    error: "No email provider configured. Please set SMTP_EMAIL and SMTP_PASSWORD in your environment.",
+  };
 }
