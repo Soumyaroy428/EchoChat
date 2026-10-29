@@ -377,7 +377,7 @@ export const sendOtp = async (req: Request, res: Response) => {
       },
       {
         upsert: true,
-        returnDocument: "after",
+        new: true,
         setDefaultsOnInsert: true,
       }
     );

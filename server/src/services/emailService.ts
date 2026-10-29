@@ -39,7 +39,7 @@ export function resolveSmtpConfig(overrides?: EmailConfigOverrides) {
     ""
   ).trim().replace(/\s+/g, "");
 
-  const host = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
+  const host = (process.env.SMTP_HOST || "smtp.gmail.com").trim() || "smtp.gmail.com";
   const port = Number(process.env.SMTP_PORT) || 465;
 
   return { email, password, host, port, isConfigured: Boolean(email && password) };
@@ -136,13 +136,16 @@ export async function sendOtpEmail(
       console.log(`[SMTP] Sending OTP to ${normalizedEmail} via Gmail SMTP (${smtpConfig.email})...`);
 
       const transporter = nodemailer.createTransport({
-        host: smtpConfig.host,
-        port: smtpConfig.port,
-        secure: smtpConfig.port === 465, // true for 465, false for 587
+        host: smtpConfig.host || "smtp.gmail.com",
+        port: smtpConfig.port || 465,
+        secure: (smtpConfig.port || 465) === 465,
         auth: {
           user: smtpConfig.email,
           pass: smtpConfig.password,
         },
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 8000,
       });
 
       const info = await transporter.sendMail({
@@ -175,7 +178,7 @@ export async function sendOtpEmail(
 
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
+      const timeout = setTimeout(() => controller.abort(), 10000);
 
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
