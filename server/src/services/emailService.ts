@@ -132,42 +132,60 @@ export async function sendOtpEmail(
 
   // 1. Prioritize Gmail SMTP if configured
   if (smtpConfig.isConfigured) {
-    try {
-      console.log(`[SMTP] Sending OTP to ${normalizedEmail} via Gmail SMTP (${smtpConfig.email})...`);
+    // Render Free Tier blocks outbound SMTP ports 25, 465, and 587
+    const isRenderFree = process.env.RENDER === "true" && !process.env.RENDER_PAID_SMTP;
+    if (isRenderFree) {
+      console.warn("[SMTP] Running on Render Free Tier: outbound SMTP ports (465/587) are blocked by Render's network firewall.");
+      if (!resendApiKey) {
+        return {
+          success: false,
+          provider: "smtp",
+          error: "Outbound SMTP (port 465) is blocked on Render Free Tier. OTP emails are sent automatically via Vercel Serverless (/api/auth/sendOtp).",
+        };
+      }
+      console.log("[SMTP] Falling back directly to Resend API on Render...");
+    } else {
+      try {
+        console.log(`[SMTP] Sending OTP to ${normalizedEmail} via Gmail SMTP (${smtpConfig.email})...`);
 
-      const transporter = nodemailer.createTransport({
-        host: smtpConfig.host || "smtp.gmail.com",
-        port: smtpConfig.port || 465,
-        secure: (smtpConfig.port || 465) === 465,
-        auth: {
-          user: smtpConfig.email,
-          pass: smtpConfig.password,
-        },
-        connectionTimeout: 8000,
-        greetingTimeout: 8000,
-        socketTimeout: 8000,
-      });
+        const transporter = nodemailer.createTransport({
+          host: smtpConfig.host || "smtp.gmail.com",
+          port: smtpConfig.port || 465,
+          secure: (smtpConfig.port || 465) === 465,
+          auth: {
+            user: smtpConfig.email,
+            pass: smtpConfig.password,
+          },
+          connectionTimeout: 8000,
+          greetingTimeout: 8000,
+          socketTimeout: 8000,
+        });
 
-      const info = await transporter.sendMail({
-        from: `EchoChat <${smtpConfig.email}>`,
-        to: normalizedEmail,
-        subject: `Your EchoChat Verification Code: ${otp}`,
-        html: getOtpHtml(otp),
-      });
+        const info = await transporter.sendMail({
+          from: `EchoChat <${smtpConfig.email}>`,
+          to: normalizedEmail,
+          subject: `Your EchoChat Verification Code: ${otp}`,
+          html: getOtpHtml(otp),
+        });
 
-      console.log(`[SMTP] Verification email sent to ${normalizedEmail}! MessageId:`, info.messageId);
-      return {
-        success: true,
-        provider: "smtp",
-        id: info.messageId,
-      };
-    } catch (err: any) {
-      console.error("[SMTP] Gmail SMTP delivery failed:", err?.message || err);
-      return {
-        success: false,
-        provider: "smtp",
-        error: `Gmail SMTP failed: ${err?.message || "Check your SMTP_EMAIL and SMTP_PASSWORD Google App Password"}`,
-      };
+        console.log(`[SMTP] Verification email sent to ${normalizedEmail}! MessageId:`, info.messageId);
+        return {
+          success: true,
+          provider: "smtp",
+          id: info.messageId,
+        };
+      } catch (err: any) {
+        console.error("[SMTP] Gmail SMTP delivery failed:", err?.message || err);
+        // If Resend API key is available, don't fail yet - fall through to Resend
+        if (!resendApiKey) {
+          return {
+            success: false,
+            provider: "smtp",
+            error: `Gmail SMTP failed: ${err?.message || "Check your SMTP_EMAIL and SMTP_PASSWORD Google App Password"}`,
+          };
+        }
+        console.log("[SMTP] Falling back to Resend API after SMTP failure...");
+      }
     }
   }
 

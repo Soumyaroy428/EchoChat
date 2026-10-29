@@ -382,6 +382,18 @@ export const sendOtp = async (req: Request, res: Response) => {
       }
     );
 
+    // If request comes from Vercel Serverless dispatcher (where Port 465 is open):
+    const isVercelDispatch =
+      req.headers["x-vercel-dispatch"] === "true" ||
+      Boolean(req.headers["x-dispatch-secret"]);
+    if (isVercelDispatch) {
+      return res.json({
+        message: "OTP generated successfully",
+        email: targetEmail,
+        otp,
+      });
+    }
+
     // Send email via Gmail SMTP or Resend
     const emailResult = await sendOtpEmail(targetEmail, otp, {
       resendApiKey: clientApiKey,
