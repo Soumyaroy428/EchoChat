@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Phone, Lock, User, ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import OtpModal from "./OtpModal";
+import { sendOtpRequest } from "../../lib/authApi";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -62,15 +63,11 @@ export default function AuthPage() {
         setShowOtpModal(true);
 
         try {
-          await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/sendOtp`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phonenumber: formData.mobile }),
-          });
+          await sendOtpRequest(formData.mobile);
           toast.success("OTP sent - please verify");
-        } catch (err) {
+        } catch (err: any) {
           console.error("Send OTP error", err);
-          toast.error("Failed to send OTP");
+          toast.error(err.message || "Failed to send OTP");
         }
       } else {
         // registration flow: save token and reload

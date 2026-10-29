@@ -176,7 +176,10 @@ PORT=5000
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/echochat?retryWrites=true&w=majority
 JWT_SECRET=your-super-strong-jwt-secret-key-32-chars-min
 
-# Twilio (SMS OTP) - Optional for mock/testing
+# APITxT (SMS OTP) - https://apitxt.com/apikey (Primary)
+APITXT_API_KEY=your-apitxt-api-key
+
+# Twilio (SMS OTP) - Optional fallback
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_PHONE_NUMBER=
@@ -198,6 +201,9 @@ Create `client/.env.local`:
 ```env
 NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
 NEXT_PUBLIC_API_URL=http://localhost:5000
+
+# APITxT (SMS OTP) - Can be placed in Vercel environment variables
+APITXT_API_KEY=your-apitxt-api-key
 ```
 
 ---

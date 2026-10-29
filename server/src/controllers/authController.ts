@@ -4,11 +4,9 @@ import jwt from "jsonwebtoken";
 import User from "../models/User";
 import otpModel from "../models/otp";
 import otpGenerator from "otp-generator";
-import twilio, { RestException } from "twilio";
-import { spec } from "node:test/reporters";
+import { sendOtpSms } from "../services/smsService";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 const avatarUrl = (avatar?: { url?: string }) => {
   if (!avatar?.url) return "";
@@ -283,70 +281,45 @@ export const getAvatar = async (req: Request, res: Response) => {
 
 export const sendOtp = async (req: Request, res: Response) => {
   try {
-    const { phonenumber } = req.body;
+    const rawNumber = req.body.phonenumber || req.body.mobile;
 
-    if (!phonenumber || typeof phonenumber !== "string") {
+    if (!rawNumber || typeof rawNumber !== "string") {
       return res.status(400).json({ error: "Mobile number is required" });
     }
 
-    function toE164(number, defaultCountry = "+91") {
-      if (!number) throw new Error("No phone number provided");
-      const digits = String(number).replace(/\D/g, "");
-      if (String(number).trim().startsWith("+")) {
-        return number.replace(/\s+/g, "");
-      }
-      // handle common local 10-digit Indian numbers
-      if (digits.length === 10) {
-        return `${defaultCountry}${digits}`;
-      }
-      // fallback: prepend + if not present
-      return `+${digits}`;
-    }
+    const phonenumber = rawNumber.trim();
+
+    // Check for explicit API key passed by proxy (e.g. from Vercel env)
+    const clientApiKey =
+      (req.headers["x-apitxt-key"] as string) ||
+      (req.body.apitxtApiKey as string) ||
+      "";
 
     // Generate a random 6-digit OTP
-    const otp = otpGenerator.generate(6, { digits: true, lowerCaseAlphabets: false, upperCaseAlphabets: false,specialChars: false });
+    const otp = otpGenerator.generate(6, {
+      digits: true,
+      lowerCaseAlphabets: false,
+      upperCaseAlphabets: false,
+      specialChars: false,
+    });
 
-    // Here you would typically send the OTP via SMS using a service like Twilio
-    console.log(`Sending OTP ${otp} to mobile number ${phonenumber}`);
+    console.log(`[sendOtp] Generating OTP for ${phonenumber}`);
 
     const currentTime = new Date();
 
     await otpModel.findOneAndUpdate(
-      { phonenumber: phonenumber },
+      { phonenumber },
       { otp, createdAt: new Date(currentTime.getTime()) },
-      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
+      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
     );
 
+    // Send SMS via APITxT (or fallback to Twilio / mock in dev)
+    const smsResult = await sendOtpSms(phonenumber, otp, clientApiKey);
 
-    try {
-      const to = toE164(phonenumber, '+91'); // use +91 as default
-      const from = process.env.TWILIO_PHONE_NUMBER;
-      if (!from || !from.startsWith('+')) {
-        console.warn('TWILIO_PHONE_NUMBER should be in E.164 format, e.g. +1234567890');
-      }
-      const message = await twilioClient.messages
-        .create({
-          body:
-            `Hello from EchoChat! Your OTP is: ${otp}. It is valid for 5 minutes. Do not share this OTP with anyone.`,
-          to: phonenumber,
-          from: process.env.TWILIO_PHONE_NUMBER,
-        })
-        .then((message) => console.log(message.sid));
-      console.log(message);
-    } catch (error) {
-      if (error instanceof RestException) {
-        console.log(`Twilio Error ${error.code}: ${error.message}`);
-        console.log(`Status: ${error.status}`);
-        console.log(`More info: ${error.moreInfo}`);
-      } else {
-        console.error("Other error:", error);
-      }
-    }
-
-    // For demonstration purposes, we'll just return the OTP in the response
     res.json({
       message: "OTP sent successfully",
-      otp, // In a real application, you would not send the OTP back in the response
+      provider: smsResult.provider,
+      ...(process.env.NODE_ENV !== "production" ? { otp } : {}),
     });
   } catch (error) {
     console.error("Send OTP error:", error);
@@ -356,15 +329,16 @@ export const sendOtp = async (req: Request, res: Response) => {
 
 export const verifyOtp = async (req: Request, res: Response) => {
   try {
-    const { phonenumber, otp } = req.body;
+    const phonenumber = (req.body.phonenumber || req.body.mobile || "").trim();
+    const otp = req.body.otp;
 
     if (!phonenumber || !otp) {
-      return res.status(400).json({ error: 'Phone number and OTP are required' });
+      return res.status(400).json({ error: "Phone number and OTP are required" });
     }
 
     const record = await otpModel.findOne({ phonenumber });
     if (!record) {
-      return res.status(400).json({ error: 'OTP not found or expired' });
+      return res.status(400).json({ error: "OTP not found or expired" });
     }
 
     // Check expiry: treat createdAt + 5 minutes as expiry

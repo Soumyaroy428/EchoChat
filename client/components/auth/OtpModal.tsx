@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
+import { sendOtpRequest } from "../../lib/authApi";
 
 type Props = {
   mobile: string;
@@ -42,13 +43,7 @@ export default function OtpModal({ mobile, onClose, onVerified }: Props) {
   const handleResend = async () => {
     setResendLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/sendOtp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phonenumber: mobile }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Resend failed");
+      await sendOtpRequest(mobile);
       toast.success("OTP resent");
     } catch (err: any) {
       toast.error(err.message || "Could not resend OTP");
