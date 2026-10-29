@@ -8,7 +8,6 @@ try {
 
 export interface EmailResult {
   success: boolean;
-  provider: "resend" | "mock";
   id?: string;
   error?: string;
 }
@@ -26,55 +25,50 @@ export function resolveResendApiKey(explicitKey?: string): string {
   ).trim();
 }
 
+export function resolveResendFromEmail(explicitFrom?: string): string {
+  const candidate = (
+    explicitFrom ||
+    process.env.RESEND_FROM_EMAIL ||
+    process.env.NEXT_PUBLIC_RESEND_FROM_EMAIL ||
+    ""
+  ).trim();
+
+  // If empty or an unverified public domain (e.g., @gmail.com) is supplied,
+  // use the verified onboarding domain provided by Resend
+  const isPublicDomain =
+    candidate.includes("@gmail.com") ||
+    candidate.includes("@googlemail.com") ||
+    candidate.includes("@yahoo.") ||
+    candidate.includes("@outlook.") ||
+    candidate.includes("@hotmail.") ||
+    candidate.includes("@icloud.");
+
+  if (!candidate || isPublicDomain) {
+    return "EchoChat <onboarding@resend.dev>";
+  }
+
+  return candidate;
+}
+
 /**
  * Sends an OTP email using the Resend API (https://resend.com)
  */
 export async function sendOtpEmail(
   toEmail: string,
   otp: string,
-  explicitApiKey?: string
+  explicitApiKey?: string,
+  explicitFromEmail?: string
 ): Promise<EmailResult> {
   const apiKey = resolveResendApiKey(explicitApiKey);
+  const fromEmail = resolveResendFromEmail(explicitFromEmail);
   const normalizedEmail = toEmail.trim().toLowerCase();
 
-  // Determine sender: Resend strictly prohibits sending from @gmail.com or other public email domains
-  // unless a custom domain is verified. Automatically use onboarding@resend.dev if not a verified custom domain.
-  let fromEmail = (process.env.RESEND_FROM_EMAIL || "").trim();
-  const isPublicDomain =
-    fromEmail.includes("@gmail.com") ||
-    fromEmail.includes("@googlemail.com") ||
-    fromEmail.includes("@yahoo.") ||
-    fromEmail.includes("@outlook.") ||
-    fromEmail.includes("@hotmail.") ||
-    fromEmail.includes("@icloud.");
-
-  if (!fromEmail || isPublicDomain) {
-    fromEmail = "EchoChat <onboarding@resend.dev>";
-  }
-
   if (!apiKey) {
-    console.log(`[EMAIL MOCK] ========================================`);
-    console.log(`[EMAIL MOCK] Recipient: ${normalizedEmail}`);
-    console.log(`[EMAIL MOCK] Generated OTP: ${otp}`);
-    console.log(`[EMAIL MOCK] (Set RESEND_API_KEY in Render environment to send real email)`);
-    console.log(`[EMAIL MOCK] ========================================`);
-
-    if (process.env.NODE_ENV === "production") {
-      return {
-        success: false,
-        provider: "mock",
-        error: "RESEND_API_KEY is not configured in Render environment variables",
-      };
-    }
-
     return {
-      success: true,
-      provider: "mock",
-      error: "No RESEND_API_KEY found in environment",
+      success: false,
+      error: "RESEND_API_KEY is not configured in environment variables",
     };
   }
-
-  console.log(`[Resend] Sending OTP to ${normalizedEmail} via Resend API (Sender: ${fromEmail})...`);
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -140,29 +134,26 @@ export async function sendOtpEmail(
       if (typeof rawError === "string" && rawError.includes("can only send testing emails to your own email address")) {
         rawError = `${rawError} (Note: Resend free tier domain onboarding@resend.dev only allows sending to the email registered on your Resend account. Verify a custom domain at resend.com/domains to send to any recipient).`;
       }
-      console.error(`[Resend] Failed to deliver email (${res.status}):`, rawError);
+      console.error(`[Resend] Delivery failed (${res.status}):`, rawError);
       return {
         success: false,
-        provider: "resend",
         error: rawError,
       };
     }
 
-    console.log(`[Resend] Email sent successfully to ${normalizedEmail}! ID:`, json?.id);
+    console.log(`[Resend] Verification email dispatched to ${normalizedEmail}! ID:`, json?.id);
     return {
       success: true,
-      provider: "resend",
       id: json?.id,
     };
   } catch (err: any) {
     const errorMsg =
       err?.name === "AbortError"
         ? "Resend request timed out"
-        : err?.message || "Resend error";
-    console.error("[Resend] Error calling Resend API:", errorMsg);
+        : err?.message || "Resend communication error";
+    console.error("[Resend] Network error:", errorMsg);
     return {
       success: false,
-      provider: "resend",
       error: errorMsg,
     };
   }

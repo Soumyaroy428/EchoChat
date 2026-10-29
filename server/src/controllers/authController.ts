@@ -328,11 +328,15 @@ export const sendOtp = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "A valid email address is required to receive the OTP" });
     }
 
-    // Check for explicit API key passed by proxy (e.g. from Vercel/Render env)
+    // Read Resend configuration passed from proxy (Vercel) or server environment
     const clientApiKey =
       (req.headers["x-resend-key"] as string) ||
-      (req.headers["x-apitxt-key"] as string) ||
       (req.body.resendApiKey as string) ||
+      "";
+
+    const clientFromEmail =
+      (req.headers["x-resend-from"] as string) ||
+      (req.body.resendFromEmail as string) ||
       "";
 
     // Generate a random 6-digit OTP
@@ -361,17 +365,20 @@ export const sendOtp = async (req: Request, res: Response) => {
         otp,
         createdAt: currentTime,
       },
-      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
+      {
+        upsert: true,
+        returnDocument: "after",
+        setDefaultsOnInsert: true,
+      }
     );
 
     // Send email via Resend
-    const emailResult = await sendOtpEmail(targetEmail, otp, clientApiKey);
+    const emailResult = await sendOtpEmail(targetEmail, otp, clientApiKey, clientFromEmail);
 
     if (!emailResult.success) {
       console.error(`[sendOtp] Resend delivery failed for ${targetEmail}:`, emailResult.error);
       return res.status(400).json({
         error: emailResult.error || "Failed to deliver OTP email via Resend",
-        provider: emailResult.provider,
         email: targetEmail,
       });
     }
@@ -379,9 +386,7 @@ export const sendOtp = async (req: Request, res: Response) => {
     res.json({
       message: "OTP sent successfully to your email",
       email: targetEmail,
-      provider: emailResult.provider,
       id: emailResult.id,
-      ...(process.env.NODE_ENV !== "production" ? { otp } : {}),
     });
   } catch (error) {
     console.error("Send OTP error:", error);

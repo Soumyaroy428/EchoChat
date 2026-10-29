@@ -11,11 +11,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email address is required" }, { status: 400 });
     }
 
-    // Read Resend API key from Vercel / server environment variables
+    // Read Resend configuration directly from Vercel environment variables
     const resendKey = (
       process.env.RESEND_API_KEY ||
       process.env.RESEND_KEY ||
       process.env.NEXT_PUBLIC_RESEND_API_KEY ||
+      ""
+    ).trim();
+
+    const resendFrom = (
+      process.env.RESEND_FROM_EMAIL ||
+      process.env.NEXT_PUBLIC_RESEND_FROM_EMAIL ||
       ""
     ).trim();
 
@@ -36,23 +42,21 @@ export async function POST(req: NextRequest) {
       backendBase = backendBase.slice(0, -1);
     }
 
-    console.log(
-      `[Vercel API Route] Forwarding sendOtp for ${email} to ${backendBase}/api/auth/sendOtp (Key configured: ${Boolean(
-        resendKey
-      )})`
-    );
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (resendKey) headers["x-resend-key"] = resendKey;
+    if (resendFrom) headers["x-resend-from"] = resendFrom;
 
     const response = await fetch(`${backendBase}/api/auth/sendOtp`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(resendKey ? { "x-resend-key": resendKey } : {}),
-      },
+      headers,
       body: JSON.stringify({
-        email,
-        phonenumber: email,
-        mobile: email,
+        email: email.trim().toLowerCase(),
+        phonenumber: email.trim(),
+        mobile: email.trim(),
         ...(resendKey ? { resendApiKey: resendKey } : {}),
+        ...(resendFrom ? { resendFromEmail: resendFrom } : {}),
       }),
     });
 
