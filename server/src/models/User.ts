@@ -1,8 +1,8 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IUser extends Document {
-  mobile: string;
-  email?: string;
+  email: string;
+  mobile?: string;
   password: string;
   name?: string;
   avatar?: {
@@ -25,16 +25,16 @@ export interface IUser extends Document {
 
 const UserSchema: Schema = new Schema(
   {
-    mobile: {
+    email: {
       type: String,
       required: true,
       unique: true,
       trim: true,
+      lowercase: true,
     },
-    email: {
+    mobile: {
       type: String,
       trim: true,
-      lowercase: true,
       default: "",
     },
     password: {
@@ -89,4 +89,9 @@ const UserSchema: Schema = new Schema(
   }
 );
 
-export default mongoose.model<IUser>("User", UserSchema);
+const UserModel = mongoose.model<IUser>("User", UserSchema);
+
+// Drop legacy unique index on mobile if it exists in MongoDB so optional mobiles don't conflict
+UserModel.collection.dropIndex("mobile_1").catch(() => {});
+
+export default UserModel;

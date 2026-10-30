@@ -59,8 +59,8 @@ Since the backend uses Socket.IO for real-time messaging, it requires a long-run
    - `PORT`: 5000
    - `MONGODB_URI`: Your MongoDB connection string
    - `JWT_SECRET`: Generate a secure random string
-   - `RESEND_API_KEY`: Your Resend API key (e.g. `re_...`) from resend.com
-   - `RESEND_FROM_EMAIL`: (Optional) `EchoChat <onboarding@resend.dev>` or your domain email
+   - `SMTP_EMAIL`: Your Gmail address (e.g. `yourname@gmail.com`)
+   - `SMTP_PASSWORD`: Your 16-character Google App Password (free, delivers to any email address)
    - `CORS_ORIGIN`: Your Vercel frontend URL (e.g., `https://your-app.vercel.app`)
 
 4. **Deploy**

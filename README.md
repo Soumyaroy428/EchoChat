@@ -176,9 +176,9 @@ PORT=5000
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/echochat?retryWrites=true&w=majority
 JWT_SECRET=your-super-strong-jwt-secret-key-32-chars-min
 
-# Resend (Email OTP) - https://resend.com (Render Environment Config)
-RESEND_API_KEY=re_your_resend_api_key
-RESEND_FROM_EMAIL=EchoChat <onboarding@resend.dev>
+# Gmail SMTP (Email OTP) - Configured in Vercel & Render Environment
+SMTP_EMAIL=yourname@gmail.com
+SMTP_PASSWORD=your_16_char_google_app_password
 
 # Cloudinary CDN - Optional (defaults to secure local uploads/ storage)
 CLOUDINARY_CLOUD_NAME=
@@ -198,8 +198,9 @@ Create `client/.env.local`:
 NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
 NEXT_PUBLIC_API_URL=http://localhost:5000
 
-# Resend (Email OTP) - Can also be set in Vercel environment variables
-RESEND_API_KEY=re_your_resend_api_key
+# Gmail SMTP (Email OTP) - Configured in Vercel Environment Variables
+SMTP_EMAIL=yourname@gmail.com
+SMTP_PASSWORD=your_16_char_google_app_password
 ```
 
 ---
@@ -265,7 +266,7 @@ npx cap open ios
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/auth/register` | Register new user with phone & password | Public |
 | `POST` | `/api/auth/login` | Login with credentials and receive JWT | Public |
-| `POST` | `/api/auth/sendOtp` | Dispatch verification OTP via Twilio | Rate-Limited |
+| `POST` | `/api/auth/sendOtp` | Dispatch verification OTP via Gmail SMTP | Rate-Limited |
 | `POST` | `/api/auth/verifyOtp` | Verify OTP code | Rate-Limited |
 | `GET` | `/api/auth/me` | Fetch current user profile & public key | Bearer JWT |
 | `PUT` | `/api/auth/profile` | Update profile details (avatar, name, bio) | Bearer JWT |

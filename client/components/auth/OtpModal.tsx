@@ -18,7 +18,7 @@ export default function OtpModal({ recipient, mobile, onClose, onVerified }: Pro
   const [emailInput, setEmailInput] = useState(initialTarget.includes("@") ? initialTarget : "");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
+  const [isSendingAgain, setIsSendingAgain] = useState(false);
 
   const activeEmail = emailInput.trim().toLowerCase();
 
@@ -55,19 +55,19 @@ export default function OtpModal({ recipient, mobile, onClose, onVerified }: Pro
     }
   };
 
-  const handleResend = async () => {
+  const handleSendAgain = async () => {
     if (!activeEmail || !activeEmail.includes("@")) {
       toast.error("Please enter a valid email address to receive the OTP");
       return;
     }
-    setResendLoading(true);
+    setIsSendingAgain(true);
     try {
       await sendOtpRequest(activeEmail);
       toast.success(`OTP sent to ${activeEmail}`);
     } catch (err: any) {
       toast.error(err.message || "Could not send OTP");
     } finally {
-      setResendLoading(false);
+      setIsSendingAgain(false);
     }
   };
 
@@ -123,11 +123,11 @@ export default function OtpModal({ recipient, mobile, onClose, onVerified }: Pro
           </button>
 
           <button
-            onClick={handleResend}
-            disabled={resendLoading}
+            onClick={handleSendAgain}
+            disabled={isSendingAgain}
             className="flex-1 bg-[#1e2a3a] hover:bg-[#27374d] disabled:opacity-60 text-gray-200 font-medium py-2.5 rounded-xl transition"
           >
-            {resendLoading ? "Sending..." : "Resend Code"}
+            {isSendingAgain ? "Sending..." : "Resend Code"}
           </button>
         </div>
 

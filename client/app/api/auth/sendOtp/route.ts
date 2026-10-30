@@ -43,17 +43,16 @@ function getOtpHtml(otp: string): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const email = (body.email || body.phonenumber || body.mobile || "").toString().trim();
+    const email = (body.email || body.phonenumber || body.mobile || "").toString().trim().toLowerCase();
 
-    if (!email) {
-      return NextResponse.json({ error: "Email address is required" }, { status: 400 });
+    if (!email || !email.includes("@")) {
+      return NextResponse.json({ error: "A valid email address is required" }, { status: 400 });
     }
 
     // Determine target backend server URL
     const backendEnv =
       process.env.NEXT_PUBLIC_API_URL ||
-      process.env.BACKEND_URL ||
-      process.env.SERVER_URL ||
+      process.env.NEXT_API_URL ||
       "https://echochat-1-2ira.onrender.com";
 
     let backendBase = backendEnv.trim();
@@ -66,7 +65,7 @@ export async function POST(req: NextRequest) {
       backendBase = backendBase.slice(0, -1);
     }
 
-    // 1. Call Render backend to generate OTP and save into MongoDB
+    // 1. Call Render backend to generate OTP and persist in MongoDB
     const backendRes = await fetch(`${backendBase}/api/auth/sendOtp`, {
       method: "POST",
       headers: {
@@ -74,7 +73,7 @@ export async function POST(req: NextRequest) {
         "x-vercel-dispatch": "true",
       },
       body: JSON.stringify({
-        email: email.toLowerCase(),
+        email,
         phonenumber: email,
         mobile: email,
       }),
@@ -93,7 +92,7 @@ export async function POST(req: NextRequest) {
     const otp = String(backendData.otp);
     const targetEmail = (backendData.email || email).toLowerCase();
 
-    // 2. Dispatch email directly from Vercel (where Port 465 is open!)
+    // 2. Dispatch email directly from Vercel via Gmail SMTP (Port 465 is OPEN on Vercel)
     const smtpEmail = (
       process.env.SMTP_EMAIL ||
       process.env.GMAIL_USER ||
@@ -106,94 +105,41 @@ export async function POST(req: NextRequest) {
       process.env.GMAIL_APP_PASSWORD ||
       process.env.SMTP_PASS ||
       ""
-    ).trim().replace(/\s+/g, "");
+    ).trim().replace(/['"\s]/g, "");
 
-    const resendKey = (
-      process.env.RESEND_API_KEY ||
-      process.env.RESEND_KEY ||
-      process.env.NEXT_PUBLIC_RESEND_API_KEY ||
-      ""
-    ).trim();
-
-    // A. Attempt Gmail SMTP from Vercel (Port 465 is OPEN on Vercel)
-    if (smtpEmail && smtpPassword) {
-      try {
-        console.log(`[Vercel Serverless] Sending OTP to ${targetEmail} via Gmail SMTP (${smtpEmail})...`);
-
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: smtpEmail,
-            pass: smtpPassword,
-          },
-          connectionTimeout: 10000,
-          greetingTimeout: 10000,
-          socketTimeout: 10000,
-        });
-
-        await transporter.sendMail({
-          from: `EchoChat <${smtpEmail}>`,
-          to: targetEmail,
-          subject: `Your EchoChat Verification Code: ${otp}`,
-          html: getOtpHtml(otp),
-        });
-
-        console.log(`[Vercel Serverless] Email sent successfully via Gmail SMTP to ${targetEmail}`);
-        return NextResponse.json({
-          message: "OTP sent successfully to your email",
-          email: targetEmail,
-          provider: "smtp",
-        });
-      } catch (smtpErr: any) {
-        console.error("[Vercel Serverless SMTP Error]:", smtpErr?.message || smtpErr);
-        if (!resendKey) {
-          return NextResponse.json(
-            { error: `Gmail SMTP failed: ${smtpErr?.message || "Verify your Google App Password"}` },
-            { status: 400 }
-          );
-        }
-      }
+    if (!smtpEmail || !smtpPassword) {
+      return NextResponse.json(
+        { error: "Gmail SMTP credentials not configured on Vercel. Please set SMTP_EMAIL and SMTP_PASSWORD." },
+        { status: 500 }
+      );
     }
 
-    // B. Fall back to Resend API
-    if (resendKey) {
-      const fromEmail = (process.env.RESEND_FROM_EMAIL || "EchoChat <onboarding@resend.dev>").trim();
-      const resendRes = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendKey}`,
-          "Content-Type": "application/json",
-          "User-Agent": "EchoChat/1.0",
-        },
-        body: JSON.stringify({
-          from: fromEmail,
-          to: [targetEmail],
-          subject: `Your EchoChat Verification Code: ${otp}`,
-          html: getOtpHtml(otp),
-        }),
-      });
+    console.log(`[Vercel Serverless] Dispatching OTP to ${targetEmail} via Gmail SMTP (${smtpEmail})...`);
 
-      const resendData = await resendRes.json().catch(() => ({}));
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: smtpEmail,
+        pass: smtpPassword,
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
+    });
 
-      if (!resendRes.ok) {
-        return NextResponse.json(
-          { error: resendData?.message || "Resend email delivery failed" },
-          { status: resendRes.status }
-        );
-      }
+    await transporter.sendMail({
+      from: `EchoChat <${smtpEmail}>`,
+      to: targetEmail,
+      subject: `Your EchoChat Verification Code: ${otp}`,
+      html: getOtpHtml(otp),
+    });
 
-      return NextResponse.json({
-        message: "OTP sent successfully to your email",
-        email: targetEmail,
-        provider: "resend",
-        id: resendData?.id,
-      });
-    }
-
-    return NextResponse.json(
-      { error: "No email provider configured. Please set SMTP_EMAIL and SMTP_PASSWORD in Vercel." },
-      { status: 500 }
-    );
+    console.log(`[Vercel Serverless] Email sent successfully via Gmail SMTP to ${targetEmail}`);
+    return NextResponse.json({
+      message: "OTP sent successfully to your email",
+      email: targetEmail,
+      provider: "smtp",
+    });
   } catch (error: any) {
     console.error("[Vercel API Route] sendOtp error:", error);
     return NextResponse.json(

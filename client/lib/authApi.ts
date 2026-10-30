@@ -1,29 +1,22 @@
 /**
- * Helper to dispatch Email OTP requests via Resend.
- * Uses the Vercel-hosted API route (/api/auth/sendOtp) which forwards
- * RESEND_API_KEY from environment variables to the backend server.
+ * Helper to dispatch Email OTP requests via Gmail SMTP.
+ * Calls the Vercel-hosted API route (/api/auth/sendOtp) which dispatches
+ * the 6-digit verification code using Gmail SMTP over port 465.
  */
 export async function sendOtpRequest(emailOrIdentifier: string): Promise<any> {
-  const normalized = emailOrIdentifier.trim();
-  const resendKey = (
-    process.env.NEXT_PUBLIC_RESEND_API_KEY ||
-    process.env.NEXT_PUBLIC_RESEND_KEY ||
-    ""
-  ).trim();
+  const email = emailOrIdentifier.trim().toLowerCase();
 
-  // 1. Try Vercel Next.js route first
+  // 1. Try Vercel Next.js route first (dispatches via Gmail SMTP on Port 465)
   try {
     const res = await fetch("/api/auth/sendOtp", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(resendKey ? { "x-resend-key": resendKey } : {}),
       },
       body: JSON.stringify({
-        email: normalized,
-        phonenumber: normalized,
-        mobile: normalized,
-        ...(resendKey ? { resendApiKey: resendKey } : {}),
+        email,
+        phonenumber: email,
+        mobile: email,
       }),
     });
 
@@ -50,13 +43,11 @@ export async function sendOtpRequest(emailOrIdentifier: string): Promise<any> {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(resendKey ? { "x-resend-key": resendKey } : {}),
     },
     body: JSON.stringify({
-      email: normalized,
-      phonenumber: normalized,
-      mobile: normalized,
-      ...(resendKey ? { resendApiKey: resendKey } : {}),
+      email,
+      phonenumber: email,
+      mobile: email,
     }),
   });
 

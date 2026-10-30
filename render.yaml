@@ -14,11 +14,9 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
-      - key: TWILIO_ACCOUNT_SID
+      - key: SMTP_EMAIL
         sync: false
-      - key: TWILIO_AUTH_TOKEN
-        sync: false
-      - key: TWILIO_PHONE_NUMBER
+      - key: SMTP_PASSWORD
         sync: false
       - key: FRONTEND_URL
         sync: false

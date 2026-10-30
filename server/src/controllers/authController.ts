@@ -37,46 +37,45 @@ export const register = async (req: Request, res: Response) => {
     const { password, name } = req.body;
     const email = (req.body.email || "").trim().toLowerCase();
     const rawMobile = (req.body.mobile || "").trim();
-    const mobile = rawMobile || email;
 
-    console.log("📝 Registration attempt:", { email, mobile });
+    console.log("📝 Registration attempt:", { email, mobile: rawMobile });
 
-    if ((!mobile && !email) || !password) {
-      return res.status(400).json({ error: "Email or mobile number, and password are required" });
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
     }
 
-    const query: any[] = [];
-    if (email) query.push({ email });
-    if (mobile) query.push({ mobile });
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
 
-    const existingUser = await User.findOne({ $or: query });
+    // Check if user already exists with this email address
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: "User already exists with this email or mobile" });
+      return res.status(400).json({ error: "An account already exists with this email address" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new User({
-      mobile,
-      email: email || (mobile.includes("@") ? mobile.toLowerCase() : ""),
+      email,
+      mobile: rawMobile,
       password: hashedPassword,
-      name: name || "",
-      isOnline: true,
+      name: name ? name.trim() : "",
+      isOnline: false,
       lastSeen: new Date(),
     });
 
     await user.save();
-    console.log("✅ User saved to database:", user._id);
-
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
+    console.log("✅ User registered:", user._id, user.email);
 
     res.status(201).json({
-      message: "User registered successfully",
-      token,
+      message: "Account registered successfully",
+      email: user.email,
+      requiresOtp: true,
       user: {
         id: user._id,
-        mobile: user.mobile,
         email: user.email,
+        mobile: user.mobile,
         name: user.name,
         avatar: avatarUrl(user.avatar),
       },
@@ -90,54 +89,47 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { password } = req.body;
-    const identifier = (req.body.email || req.body.mobile || req.body.phonenumber || "").trim();
+    const email = (req.body.email || req.body.identifier || req.body.mobile || "").trim().toLowerCase();
 
-    console.log("🔐 Login attempt:", { identifier });
+    console.log("🔐 Login attempt for email:", email);
 
-    if (!identifier || !password) {
-      return res.status(400).json({ error: "Email or mobile number, and password are required" });
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
     }
 
     const user = await User.findOne({
       $or: [
-        { email: identifier.toLowerCase() },
-        { mobile: identifier },
-        { mobile: identifier.toLowerCase() },
+        { email },
+        { mobile: email },
       ],
     });
 
     if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "Invalid email or password" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    // Auto-update email if user logged in with email but had none on file
-    if (!user.email && identifier.includes("@")) {
-      user.email = identifier.toLowerCase();
+    // Ensure email is set if it was missing
+    if (!user.email && email.includes("@")) {
+      user.email = email;
+      await user.save();
     }
-
-    user.isOnline = true;
-    user.lastSeen = new Date();
-    await user.save();
 
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
 
-    const targetEmail = user.email || (user.mobile.includes("@") ? user.mobile : "");
-    const needsEmail = !targetEmail;
-
     res.json({
-      message: "Login successful",
+      message: "Credentials verified",
       token,
-      email: targetEmail,
-      needsEmail,
+      email: user.email,
+      requiresOtp: true,
       user: {
         id: user._id,
-        mobile: user.mobile,
         email: user.email,
+        mobile: user.mobile,
         name: user.name,
         avatar: avatarUrl(user.avatar),
       },
@@ -328,17 +320,6 @@ export const sendOtp = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "A valid email address is required to receive the OTP" });
     }
 
-    // Read email configuration passed from proxy (Vercel) or server environment
-    const clientApiKey =
-      (req.headers["x-resend-key"] as string) ||
-      (req.body.resendApiKey as string) ||
-      "";
-
-    const clientFromEmail =
-      (req.headers["x-resend-from"] as string) ||
-      (req.body.resendFromEmail as string) ||
-      "";
-
     const clientSmtpEmail =
       (req.headers["x-smtp-email"] as string) ||
       (req.body.smtpEmail as string) ||
@@ -394,10 +375,8 @@ export const sendOtp = async (req: Request, res: Response) => {
       });
     }
 
-    // Send email via Gmail SMTP or Resend
+    // Send email via Gmail SMTP
     const emailResult = await sendOtpEmail(targetEmail, otp, {
-      resendApiKey: clientApiKey,
-      resendFromEmail: clientFromEmail,
       smtpEmail: clientSmtpEmail,
       smtpPassword: clientSmtpPassword,
     });

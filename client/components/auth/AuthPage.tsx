@@ -10,11 +10,10 @@ import { getApiBaseUrl } from "../../lib/utils";
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
-    emailOrMobile: "",
     email: "",
-    mobile: "",
     password: "",
     name: "",
+    mobile: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -24,10 +23,8 @@ export default function AuthPage() {
   const [otpRecipient, setOtpRecipient] = useState("");
 
   const handleOtpVerified = (token: string, user: any) => {
-    // save token and user after successful OTP verification
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
-    // reload to reflect authenticated state
     window.location.reload();
   };
 
@@ -41,58 +38,47 @@ export default function AuthPage() {
 
       const payload = isLogin
         ? {
-            email: formData.emailOrMobile.trim(),
-            mobile: formData.emailOrMobile.trim(),
+            email: formData.email.trim().toLowerCase(),
             password: formData.password,
           }
         : {
             email: formData.email.trim().toLowerCase(),
-            mobile: formData.mobile.trim() || formData.email.trim().toLowerCase(),
             password: formData.password,
             name: formData.name.trim(),
+            mobile: formData.mobile.trim(),
           };
 
-      const response = await fetch(
-        `${getApiBaseUrl()}${endpoint}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(`${getApiBaseUrl()}${endpoint}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Authentication failed");
+        throw new Error(data.error || (isLogin ? "Login failed" : "Registration failed"));
       }
 
-      if (isLogin) {
-        // Resolve email to receive OTP
-        const recipient =
-          data.email ||
-          (formData.emailOrMobile.includes("@") ? formData.emailOrMobile.trim() : "");
+      // Both Login and Registration require Email OTP verification via Gmail SMTP
+      const recipient = (data.email || formData.email).trim().toLowerCase();
+      setOtpRecipient(recipient);
+      setShowOtpModal(true);
 
-        setOtpRecipient(recipient);
-        setShowOtpModal(true);
-
-        if (recipient && recipient.includes("@")) {
-          try {
-            await sendOtpRequest(recipient);
-            toast.success(`Verification code sent to ${recipient}!`);
-          } catch (err: any) {
-            console.error("Send OTP error", err);
-            toast.error(err.message || "Failed to send verification email");
-          }
+      if (recipient && recipient.includes("@")) {
+        try {
+          await sendOtpRequest(recipient);
+          toast.success(
+            isLogin
+              ? `Verification code sent to ${recipient}!`
+              : `Account created! Verification code sent to ${recipient}!`
+          );
+        } catch (err: any) {
+          console.error("Send OTP error", err);
+          toast.error(err.message || "Failed to send verification email");
         }
-      } else {
-        // Registration successful
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        toast.success("Account created successfully!");
-        window.location.reload();
       }
     } catch (err: any) {
       toast.error(err.message || "Authentication failed");
@@ -128,75 +114,55 @@ export default function AuthPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Full Name (Optional)
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="e.g. Alex Morgan"
-                      className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Email Address *
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="name@example.com"
-                      required
-                      className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Mobile Number (Optional)
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="tel"
-                      name="mobile"
-                      value={formData.mobile}
-                      onChange={handleChange}
-                      placeholder="+1234567890"
-                      className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-
-            {isLogin && (
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Email or Phone Number *
+                  Full Name (Optional)
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <User className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                   <input
                     type="text"
-                    name="emailOrMobile"
-                    value={formData.emailOrMobile}
+                    name="name"
+                    value={formData.name}
                     onChange={handleChange}
-                    placeholder="Enter your email or phone"
-                    required
+                    placeholder="e.g. Alex Morgan"
+                    className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Email Address *
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="name@example.com"
+                  required
+                  className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
+                />
+              </div>
+            </div>
+
+            {!isLogin && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Mobile Number (Optional)
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <input
+                    type="tel"
+                    name="mobile"
+                    value={formData.mobile}
+                    onChange={handleChange}
+                    placeholder="+1234567890 (optional)"
                     className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
                   />
                 </div>
