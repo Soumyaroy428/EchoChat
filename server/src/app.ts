@@ -55,12 +55,25 @@ export const getIO = () => io;
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const resolveUserId = async (id: string) => {
-  const user = await User.findById(id).select("_id");
-  if (user) return user._id.toString();
-  const contact = await NewContact.findById(id).select("mobile");
-  if (!contact) return id;
-  const contactUser = await User.findOne({ mobile: contact.mobile }).select("_id");
-  return contactUser?._id.toString() || id;
+  try {
+    const user = await User.findById(id).select("_id");
+    if (user) return user._id.toString();
+    const contact: any = await NewContact.findById(id).select("mobile email contactUserId");
+    if (!contact) return id;
+    if (contact.contactUserId) return contact.contactUserId.toString();
+    const searchId = contact.email || contact.mobile;
+    const contactUser = await User.findOne({
+      $or: [
+        { mobile: searchId },
+        { email: searchId },
+        { email: searchId?.toLowerCase() },
+        ...(contact.mobile ? [{ mobile: contact.mobile }] : []),
+      ],
+    }).select("_id");
+    return contactUser?._id.toString() || id;
+  } catch {
+    return id;
+  }
 };
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;

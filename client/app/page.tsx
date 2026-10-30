@@ -23,4 +23,6 @@ export default function Home() {
   }
 
   return isAuthenticated ? <MainPage /> : <LandingPage />;
+  //if anyone is authenticated, they will be redirected to the main page, otherwise they will see the landing page.
+  // This is next.js Web Client component, so it will be rendered on the client side. The useEffect hook is used to check if the user is authenticated by checking for a token in localStorage. If a token is found, the user is considered authenticated and will be redirected to the main page. If no token is found, the user will see the landing page.
 }

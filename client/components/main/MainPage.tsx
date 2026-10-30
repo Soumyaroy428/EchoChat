@@ -12,6 +12,7 @@ import ContactInfoPanel from "../chat/ContactInfoPanel";
 import CallModal from "../chat/CallModal";
 import StatusSection from "../sidebar/statusSection";
 import CallSection from "../sidebar/callSection";
+import { getApiBaseUrl } from "../../lib/utils";
 
 type Contact = {
   id: string;
@@ -106,7 +107,7 @@ export default function MainPage() {
         navigator.serviceWorker.register("/sw.js").catch(console.error);
       }
       try {
-        const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/profile`, {
+        const profileRes = await fetch(`${getApiBaseUrl()}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -128,7 +129,7 @@ export default function MainPage() {
           const keyPair = await getOrCreateUserKeyPair(profileData.user.id);
           setUserPrivateKey(keyPair.privateKeyJwk);
           if (!profileData.user.publicKey || profileData.user.publicKey !== keyPair.publicKey) {
-            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/profile/public-key`, {
+            fetch(`${getApiBaseUrl()}/api/auth/profile/public-key`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
@@ -145,13 +146,13 @@ export default function MainPage() {
           const token = localStorage.getItem("token");
           
           const [contactsRes, groupsRes] = await Promise.all([
-            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contacts`, {
+            fetch(`${getApiBaseUrl()}/api/contacts`, {
               headers: {
                 "Content-Type": "application/json",
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
               },
             }),
-            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/groups`, {
+            fetch(`${getApiBaseUrl()}/api/groups`, {
               headers: {
                 "Content-Type": "application/json",
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -355,7 +356,7 @@ export default function MainPage() {
   const handleCreateContact = async (c: { name: string; mobile: string }) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contacts`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/contacts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -399,7 +400,7 @@ export default function MainPage() {
   const handleDeleteContact = async (id: string) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contacts/${id}`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/contacts/${id}`, {
         method: "DELETE",
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -427,7 +428,7 @@ export default function MainPage() {
   const handleEditContact = async (id: string, payload: { name?: string; mobile?: string }) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contacts/${id}`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/contacts/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
