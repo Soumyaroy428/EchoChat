@@ -29,6 +29,7 @@ const UserSchema: Schema = new Schema(
       type: String,
       required: true,
       unique: true,
+      sparse: true,
       trim: true,
       lowercase: true,
     },
@@ -93,5 +94,8 @@ const UserModel = mongoose.model<IUser>("User", UserSchema);
 
 // Drop legacy unique index on mobile if it exists in MongoDB so optional mobiles don't conflict
 UserModel.collection.dropIndex("mobile_1").catch(() => {});
+
+// Ensure indexes defined on schema (such as unique email) are created
+UserModel.createIndexes().catch(() => {});
 
 export default UserModel;
