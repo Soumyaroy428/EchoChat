@@ -468,18 +468,18 @@ export default function MainPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0b0b0f] flex items-center justify-center">
-        <div className="text-white text-xl">Loading chat...</div>
+      <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
+        <div className="text-[#F8FAFC] text-xl font-medium animate-pulse">Loading EchoChat...</div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen w-screen bg-[#05060b] text-white overflow-hidden p-2 md:p-4">
-      <div className="flex flex-col md:flex-row h-full w-full gap-2 md:gap-4 relative overflow-hidden">
+    <div className="h-screen w-screen bg-[#0F172A] text-[#F8FAFC] overflow-hidden p-2 md:p-3">
+      <div className="flex flex-col md:flex-row h-full w-full gap-2 md:gap-3 relative overflow-hidden">
         
-        {/* Side Navigation - Bottom bar on mobile, left bar on desktop */}
-        <div className={`md:w-[80px] xl:w-[96px] flex-shrink-0 order-last md:order-first mt-auto md:mt-0 h-16 md:h-full ${selectedContact ? 'hidden md:block' : 'block'}`}>
+        {/* Side Navigation - Bottom bar on mobile, left rail on desktop */}
+        <div className={`md:w-[68px] lg:w-[76px] flex-shrink-0 order-last md:order-first mt-auto md:mt-0 h-14 md:h-full ${selectedContact ? 'hidden md:block' : 'block'}`}>
           <Side
             hasActiveChat={!!selectedContact}
             activeTab={activeTab}

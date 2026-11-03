@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "085c8a5c-298b-4af6-be52-1ac92d194bad",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\candidate.json",
+  "output": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\auth-request-flow.html",
+  "specification": {
+    "sha256": "9224969e3c695400f56ac2f62d1cccbc0720132ab2a2a8fefe25f416e347ec7d",
+    "bytes": 6506
+  },
+  "artifact": {
+    "sha256": "7d6d64415126e38e75694589d3d8c23a9260155321ff057223ece3a72ed78ac1",
+    "bytes": 850028
+  }
+}

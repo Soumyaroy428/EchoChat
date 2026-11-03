@@ -1,0 +1,473 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "erd",
+  "quality": "standard",
+  "startedAt": "2026-11-02T17:36:48.322Z",
+  "specification": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\candidate.json",
+    "sha256": "a6cd7de4d5fe08cfbee4969bbc2cbb1499872cf486a37bb926bd821035a08a83",
+    "bytes": 10126
+  },
+  "artifact": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\database-schema.html",
+    "sha256": "a60c1c776272692cbae0c91053069c06521572f09196a7fc8fda1d3489842013",
+    "bytes": 871864
+  },
+  "stages": {
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\soumy\\.gemini\\config\\plugins\\archify\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "erd",
+        "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\candidate.json",
+        "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\database-schema.html",
+        "--quality",
+        "standard",
+        "--repo-root",
+        "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "a6cd7de4d5fe08cfbee4969bbc2cbb1499872cf486a37bb926bd821035a08a83",
+          "bytes": 10126
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "standard",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 1,
+          "compositionIssues": [
+            {
+              "severity": "warning",
+              "code": "composition/proper-crossing",
+              "relationship": {
+                "id": "rel_msg_group",
+                "from": "MessageHistory",
+                "to": "Group",
+                "label": "belongs to",
+                "collectionIndex": 3,
+                "artifactIndex": 4
+              },
+              "otherRelationship": {
+                "id": "rel_status_user",
+                "from": "Status",
+                "to": "User",
+                "label": "posted by",
+                "collectionIndex": 5,
+                "artifactIndex": 6
+              },
+              "point": [
+                541.5,
+                277
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 1633,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\soumy\\.gemini\\config\\plugins\\archify\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "erd",
+        "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\candidate.json",
+        "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\database-schema.html",
+        "--quality",
+        "standard",
+        "--repo-root",
+        "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "3169623e-cbe6-4dd2-af6d-c91874ae51cf",
+        "ok": true,
+        "command": "deliver",
+        "type": "erd",
+        "input": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\candidate.json",
+        "output": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\database-schema.html",
+        "specification": {
+          "sha256": "a6cd7de4d5fe08cfbee4969bbc2cbb1499872cf486a37bb926bd821035a08a83",
+          "bytes": 10126
+        },
+        "artifact": {
+          "sha256": "a60c1c776272692cbae0c91053069c06521572f09196a7fc8fda1d3489842013",
+          "bytes": 871864
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "standard",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 1,
+          "compositionIssues": [
+            {
+              "severity": "warning",
+              "code": "composition/proper-crossing",
+              "relationship": {
+                "id": "rel_msg_group",
+                "from": "MessageHistory",
+                "to": "Group",
+                "label": "belongs to",
+                "collectionIndex": 3,
+                "artifactIndex": 4
+              },
+              "otherRelationship": {
+                "id": "rel_status_user",
+                "from": "Status",
+                "to": "User",
+                "label": "posted by",
+                "collectionIndex": 5,
+                "artifactIndex": 6
+              },
+              "point": [
+                541.5,
+                277
+              ]
+            }
+          ]
+        },
+        "evidence": {
+          "verified": true,
+          "repository": "https://github.com/Soumyaroy428/EchoChat",
+          "revision": "9aa2080de3bb71802f3352f05d4cc627cae0bdf7",
+          "references": 6
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 454,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\soumy\\.gemini\\config\\plugins\\archify\\skills\\archify\\bin\\archify.mjs",
+        "check",
+        "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\database-schema.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\database-schema.html",
+        "artifact": {
+          "sha256": "a60c1c776272692cbae0c91053069c06521572f09196a7fc8fda1d3489842013",
+          "bytes": 871864
+        },
+        "checks": [
+          {
+            "name": "single_svg",
+            "ok": true,
+            "details": [
+              "found 1 <svg> block(s)"
+            ]
+          },
+          {
+            "name": "finite_svg",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "orthogonal_arrows",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "label_route_clearance",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_crossings",
+            "ok": true,
+            "details": [
+              "[composition/proper-crossing] standard relationship id \"rel_msg_group\" (\"MessageHistory\" -> \"Group\") crosses relationship id \"rel_status_user\" (\"Status\" -> \"User\") at [541.5, 277]"
+            ]
+          },
+          {
+            "name": "relationship_corridors",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "container_border_runs",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "route_rhythm",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "legend_clearance",
+            "ok": true,
+            "details": []
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "standard",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 1
+          },
+          "metrics": {
+            "properCrossings": 1,
+            "resolvedCrossovers": 0,
+            "ambiguousCorridors": 0,
+            "arrowheadCollisions": 0,
+            "containerBorderRuns": 0,
+            "labelRouteClearanceIssues": 0,
+            "labelCanvasOverflowIssues": 0,
+            "minLabelRouteClearance": 3,
+            "desktopReadabilityIssues": 0,
+            "viewportHeightIssues": 0,
+            "minProjectedNodeTextPx": 8.222003929273084,
+            "maxBends": 4,
+            "routesOverSuggestedBends": 1,
+            "maxStretch": 1.363,
+            "routesOverSuggestedStretch": 1,
+            "minSegmentPx": 16,
+            "minInteriorSegmentPx": 85,
+            "shortSegmentCount": 0,
+            "shortEndpointSegmentCount": 0,
+            "shortInteriorSegmentCount": 0,
+            "microSegmentCount": 0
+          },
+          "suggestedLimits": {
+            "bendsPerRelationship": 2,
+            "stretch": 1.35,
+            "segmentPx": 16,
+            "microSegmentPx": 8
+          },
+          "routeReview": {
+            "crossings": [],
+            "detours": [
+              {
+                "relationship": {
+                  "id": "rel_otp_user",
+                  "from": "Otp",
+                  "to": "User",
+                  "label": "authenticates",
+                  "collectionIndex": 0,
+                  "artifactIndex": 1
+                },
+                "bends": 4,
+                "stretch": 1.363
+              }
+            ]
+          },
+          "leadingSpace": {
+            "measured": false,
+            "reviewSuggested": false
+          },
+          "desktopReadability": {
+            "budgetBasis": "recognized-declared-wide",
+            "readerContract": "declared-wide-v1",
+            "availableDiagramWidth": 930,
+            "actualBudgetPx": 930,
+            "actualReaderWidth": 960,
+            "desiredReaderWidth": 960,
+            "viewportCap": 1376,
+            "limit": "source-size",
+            "requestedTargetPx": 7.5,
+            "requestedTargetMet": true,
+            "hardFloorPx": 6,
+            "hardFloorMet": true,
+            "minimumOwner": {
+              "kind": "node",
+              "id": "User"
+            },
+            "minimumSourceTextPx": 9,
+            "minimumProjectedTextPx": 8.222003929273084,
+            "semanticTextCount": 121
+          },
+          "issues": [
+            {
+              "severity": "warning",
+              "code": "composition/proper-crossing",
+              "relationship": {
+                "id": "rel_msg_group",
+                "from": "MessageHistory",
+                "to": "Group",
+                "label": "belongs to",
+                "collectionIndex": 3,
+                "artifactIndex": 4
+              },
+              "otherRelationship": {
+                "id": "rel_status_user",
+                "from": "Status",
+                "to": "User",
+                "label": "posted by",
+                "collectionIndex": 5,
+                "artifactIndex": 6
+              },
+              "point": [
+                541.5,
+                277
+              ]
+            }
+          ]
+        },
+        "provenance": "current",
+        "deliveryReceiptId": "3169623e-cbe6-4dd2-af6d-c91874ae51cf"
+      }
+    },
+    "browser-check": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": 11626,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\soumy\\.gemini\\config\\plugins\\archify\\skills\\archify\\bin\\archify.mjs",
+        "browser-check",
+        "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\database-schema.html",
+        "--json",
+        "--require-provenance",
+        "--out-dir",
+        "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\review-otp-2"
+      ],
+      "execution": "in-process",
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "browser-check",
+        "evidenceKind": "automated-browser",
+        "status": "fail",
+        "visualReview": "not-requested",
+        "provenance": "current",
+        "deliveryReceiptId": "3169623e-cbe6-4dd2-af6d-c91874ae51cf",
+        "artifact": {
+          "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\database-schema.html",
+          "sha256": "a60c1c776272692cbae0c91053069c06521572f09196a7fc8fda1d3489842013",
+          "bytes": 871864
+        },
+        "state": {
+          "detail": "read",
+          "motion": "still"
+        },
+        "chrome": {
+          "status": "available",
+          "executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
+        },
+        "diagnostics": [
+          {
+            "code": "viewer/temp-cleanup-incomplete",
+            "severity": "error",
+            "message": "Browser cleanup could not safely finish; inspect the reported retained path.",
+            "subject": {
+              "artifact": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\database-schema.html"
+            },
+            "evidence": {
+              "reason": "Chrome did not exit; retained temporary profile \"C:\\Users\\soumy\\AppData\\Local\\Temp\\archify-visual-check-profile-trJEej\".",
+              "retainedDirectory": "C:\\Users\\soumy\\AppData\\Local\\Temp\\archify-visual-check-profile-trJEej"
+            },
+            "supportedFixes": [
+              "resolve the reported process or filesystem failure; verify directory ownership before manual cleanup"
+            ]
+          }
+        ],
+        "containment": {
+          "status": "fail",
+          "policy": "fit-or-reader-declared-readable-vertical-scroll",
+          "viewports": []
+        },
+        "themeStates": {
+          "status": "fail",
+          "viewports": []
+        },
+        "readability": {
+          "status": "fail",
+          "minimumProjectedNodeTextPx": 6,
+          "viewports": []
+        },
+        "viewerChrome": {
+          "status": "fail",
+          "viewports": []
+        },
+        "captures": {
+          "status": "not-requested",
+          "screenshots": [],
+          "contactSheet": null
+        },
+        "sidecars": {
+          "directory": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\review-otp-2",
+          "receipt": "database-schema.browser-check.json",
+          "files": []
+        },
+        "error": "Chrome did not exit; retained temporary profile \"C:\\Users\\soumy\\AppData\\Local\\Temp\\archify-visual-check-profile-trJEej\"."
+      }
+    }
+  },
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  },
+  "diagnostics": [
+    {
+      "code": "viewer/temp-cleanup-incomplete",
+      "severity": "error",
+      "message": "Browser cleanup could not safely finish; inspect the reported retained path.",
+      "subject": {
+        "artifact": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\database-schema.html"
+      },
+      "evidence": {
+        "reason": "Chrome did not exit; retained temporary profile \"C:\\Users\\soumy\\AppData\\Local\\Temp\\archify-visual-check-profile-trJEej\".",
+        "retainedDirectory": "C:\\Users\\soumy\\AppData\\Local\\Temp\\archify-visual-check-profile-trJEej"
+      },
+      "supportedFixes": [
+        "resolve the reported process or filesystem failure; verify directory ownership before manual cleanup"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\review-otp-2\\database-schema.finalize.json",
+    "summaryReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\review-otp-2\\database-schema.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\erd-database-schema-20261102-223000\\review-otp-2\\database-schema.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "browser-check",
+  "finishedAt": "2026-11-02T17:37:03.087Z",
+  "durationMs": 14764,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-02T17:00:46.292Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

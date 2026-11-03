@@ -1,0 +1,435 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "EchoChat CI/CD Deployment Pipeline",
+    "subtitle": "Parallel Vercel & Render builds, environment secret injection, and live health verification",
+    "output": ".archify/workflow-deployment-pipeline-20261102-223000/deployment-pipeline.html",
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Soumyaroy428/EchoChat.git",
+      "revision": "9aa2080de3bb71802f3352f05d4cc627cae0bdf7"
+    },
+    "views": [
+      {
+        "id": "source_control",
+        "label": "Source & Push",
+        "focus": [
+          "git_commit",
+          "git_push",
+          "github_repo"
+        ],
+        "note": "Developer commits TypeScript diffs and pushes to origin/master triggering webhooks."
+      },
+      {
+        "id": "parallel_build",
+        "label": "Dual-Target Build",
+        "focus": [
+          "vercel_build",
+          "render_build",
+          "vercel_secrets",
+          "render_secrets"
+        ],
+        "note": "Next.js frontend and Express/Socket.IO backend compile with independent secret environments."
+      },
+      {
+        "id": "rollout_verify",
+        "label": "Deploy & Verify",
+        "focus": [
+          "vercel_deploy",
+          "render_deploy",
+          "health_check"
+        ],
+        "note": "Production rollout across Vercel edge CDN and Render persistent container with SLO validation."
+      }
+    ]
+  },
+  "lanes": [
+    {
+      "id": "dev",
+      "label": "Developer Workstation"
+    },
+    {
+      "id": "ci",
+      "label": "GitHub Repository"
+    },
+    {
+      "id": "vercel",
+      "label": "Vercel Platform (Next.js & Serverless)"
+    },
+    {
+      "id": "render",
+      "label": "Render Platform (Express & Socket.IO)"
+    },
+    {
+      "id": "policy",
+      "label": "Failure & Recovery",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "phase_source",
+      "label": "Source & Versioning",
+      "fromCol": 0,
+      "toCol": 1
+    },
+    {
+      "id": "phase_build",
+      "label": "Parallel CI/CD Build",
+      "fromCol": 2,
+      "toCol": 3,
+      "variant": "emphasis"
+    },
+    {
+      "id": "phase_rollout",
+      "label": "Production Rollout & Health",
+      "fromCol": 4,
+      "toCol": 5,
+      "variant": "dashed"
+    }
+  ],
+  "groups": [
+    {
+      "id": "grp_vercel",
+      "label": "Frontend Pipeline",
+      "lane": "vercel",
+      "fromCol": 2,
+      "toCol": 3,
+      "variant": "emphasis"
+    },
+    {
+      "id": "grp_render",
+      "label": "Backend Pipeline",
+      "lane": "render",
+      "fromCol": 2,
+      "toCol": 3,
+      "variant": "emphasis"
+    },
+    {
+      "id": "grp_recovery",
+      "label": "Recovery Path",
+      "lane": "policy",
+      "fromCol": 2,
+      "toCol": 4,
+      "variant": "security"
+    }
+  ],
+  "mainPath": [
+    "git_commit",
+    "git_push",
+    "github_repo",
+    "vercel_build",
+    "vercel_secrets",
+    "vercel_deploy",
+    "health_check"
+  ],
+  "nodes": [
+    {
+      "id": "git_commit",
+      "lane": "dev",
+      "col": 0,
+      "type": "frontend",
+      "label": "Commit Code",
+      "sublabel": "TypeScript diffs",
+      "tag": "git commit",
+      "width": 130,
+      "sources": [
+        {
+          "path": "client/package.json",
+          "line": 5,
+          "end_line": 12,
+          "label": "Build Scripts"
+        }
+      ]
+    },
+    {
+      "id": "git_push",
+      "lane": "dev",
+      "col": 1,
+      "type": "frontend",
+      "label": "Push to Origin",
+      "sublabel": "git push master",
+      "tag": "git push",
+      "width": 130
+    },
+    {
+      "id": "github_repo",
+      "lane": "ci",
+      "col": 1,
+      "type": "cloud",
+      "label": "GitHub Webhook",
+      "sublabel": "dispatches CI/CD",
+      "tag": "master branch",
+      "width": 130,
+      "sources": [
+        {
+          "path": "DEPLOYMENT.md",
+          "line": 17,
+          "end_line": 22,
+          "label": "Push Protocol"
+        }
+      ]
+    },
+    {
+      "id": "vercel_build",
+      "lane": "vercel",
+      "col": 2,
+      "type": "frontend",
+      "label": "Vercel Build",
+      "sublabel": "next build",
+      "tag": "Next.js 16",
+      "width": 130,
+      "sources": [
+        {
+          "path": "client/package.json",
+          "line": 6,
+          "end_line": 8,
+          "label": "Next Build"
+        }
+      ]
+    },
+    {
+      "id": "render_build",
+      "lane": "render",
+      "col": 2,
+      "type": "backend",
+      "label": "Render Build",
+      "sublabel": "npm run build (tsc)",
+      "tag": "Node.js 20",
+      "width": 130,
+      "sources": [
+        {
+          "path": "render.yaml",
+          "line": 5,
+          "end_line": 7,
+          "label": "Build Command"
+        }
+      ]
+    },
+    {
+      "id": "vercel_secrets",
+      "lane": "vercel",
+      "col": 3,
+      "type": "security",
+      "label": "Vercel Secrets",
+      "sublabel": "SMTP_EMAIL & PASS",
+      "tag": "port 465",
+      "width": 130,
+      "sources": [
+        {
+          "path": "client/app/api/auth/sendOtp/route.ts",
+          "line": 96,
+          "end_line": 115,
+          "label": "SMTP Config"
+        }
+      ]
+    },
+    {
+      "id": "render_secrets",
+      "lane": "render",
+      "col": 3,
+      "type": "security",
+      "label": "Render Secrets",
+      "sublabel": "MONGODB_URI & JWT",
+      "tag": "secrets",
+      "width": 130,
+      "sources": [
+        {
+          "path": "render.yaml",
+          "line": 8,
+          "end_line": 22,
+          "label": "Env Variables"
+        }
+      ]
+    },
+    {
+      "id": "vercel_deploy",
+      "lane": "vercel",
+      "col": 4,
+      "type": "cloud",
+      "label": "Vercel Edge",
+      "sublabel": "client-mu-taupe",
+      "tag": "Global CDN",
+      "width": 130,
+      "sources": [
+        {
+          "path": "DEPLOYMENT.md",
+          "line": 24,
+          "end_line": 30,
+          "label": "Edge Deploy"
+        }
+      ]
+    },
+    {
+      "id": "render_deploy",
+      "lane": "render",
+      "col": 4,
+      "type": "cloud",
+      "label": "Render Service",
+      "sublabel": "echochat-backend",
+      "tag": "Port 10000",
+      "width": 130,
+      "sources": [
+        {
+          "path": "render.yaml",
+          "line": 1,
+          "end_line": 12,
+          "label": "Web Service"
+        }
+      ]
+    },
+    {
+      "id": "health_check",
+      "lane": "dev",
+      "col": 5,
+      "type": "backend",
+      "label": "Health Check",
+      "sublabel": "REST + Socket live",
+      "tag": "verified",
+      "width": 130
+    },
+    {
+      "id": "build_fail",
+      "lane": "policy",
+      "col": 2,
+      "type": "security",
+      "label": "Build Failure",
+      "sublabel": "type or lint error",
+      "tag": "halt",
+      "width": 130
+    },
+    {
+      "id": "rollback",
+      "lane": "policy",
+      "col": 4,
+      "type": "messagebus",
+      "label": "Rollback",
+      "sublabel": "revert to stable SHA",
+      "tag": "owner: on-call",
+      "width": 130
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_commit_push",
+      "from": "git_commit",
+      "to": "git_push",
+      "variant": "default"
+    },
+    {
+      "id": "edge_push_repo",
+      "from": "git_push",
+      "to": "github_repo",
+      "label": "push",
+      "variant": "emphasis"
+    },
+    {
+      "id": "edge_repo_vercel",
+      "from": "github_repo",
+      "to": "vercel_build",
+      "label": "dispatch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "edge_repo_render",
+      "from": "github_repo",
+      "to": "render_build",
+      "label": "dispatch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "edge_vercel_build_secrets",
+      "from": "vercel_build",
+      "to": "vercel_secrets",
+      "variant": "default"
+    },
+    {
+      "id": "edge_render_build_secrets",
+      "from": "render_build",
+      "to": "render_secrets",
+      "variant": "default"
+    },
+    {
+      "id": "edge_vercel_secrets_deploy",
+      "from": "vercel_secrets",
+      "to": "vercel_deploy",
+      "variant": "default"
+    },
+    {
+      "id": "edge_render_secrets_deploy",
+      "from": "render_secrets",
+      "to": "render_deploy",
+      "variant": "default"
+    },
+    {
+      "id": "edge_vercel_deploy_health",
+      "from": "vercel_deploy",
+      "to": "health_check",
+      "label": "live",
+      "variant": "emphasis"
+    },
+    {
+      "id": "edge_render_deploy_health",
+      "from": "render_deploy",
+      "to": "health_check",
+      "label": "live",
+      "variant": "emphasis"
+    },
+    {
+      "id": "edge_vercel_fail",
+      "from": "vercel_build",
+      "to": "build_fail",
+      "label": "error",
+      "role": "error",
+      "variant": "security"
+    },
+    {
+      "id": "edge_health_rollback",
+      "from": "health_check",
+      "to": "rollback",
+      "label": "unhealthy",
+      "role": "error",
+      "variant": "security"
+    },
+    {
+      "id": "edge_rollback_repo",
+      "from": "rollback",
+      "to": "github_repo",
+      "label": "revert",
+      "role": "return",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Decoupled Deployment Architecture",
+      "items": [
+        "Frontend Next.js client deploys serverlessly to Vercel global edge network.",
+        "Backend Express server with Socket.IO runs as a persistent container on Render.",
+        "Parallel webhooks deploy both microservices concurrently on every push to master."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Environment Secrets & Network Routing",
+      "items": [
+        "Vercel holds Gmail SMTP credentials and dispatches verification emails on open port 465.",
+        "Render connects securely to MongoDB Atlas cluster and verifies JWT token signatures.",
+        "Browser clients connect seamlessly across REST API routes and persistent WebSocket channels."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Recovery & Health Verification",
+      "items": [
+        "Build failures immediately halt deployments before edge or container activation.",
+        "End-to-end synthetic health checks confirm REST response codes and socket connection liveness.",
+        "Instant Git revert or platform dashboard rollback restores the previous verified image."
+      ]
+    }
+  ]
+}

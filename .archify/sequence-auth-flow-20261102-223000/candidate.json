@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "EchoChat Authentication & Request Flow",
+    "locale": "en",
+    "output": ".archify/sequence-auth-flow-20261102-223000/auth-request-flow.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Soumyaroy428/EchoChat.git",
+      "revision": "9aa2080de3bb71802f3352f05d4cc627cae0bdf7"
+    }
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "Browser Client" },
+    {
+      "id": "client",
+      "type": "frontend",
+      "label": "Next.js UI",
+      "sublabel": "EchoChat Client",
+      "sources": [
+        {
+          "path": "client/components/auth/AuthPage.tsx",
+          "line": 35,
+          "end_line": 80
+        }
+      ]
+    },
+    {
+      "id": "vercel",
+      "type": "security",
+      "label": "Vercel API",
+      "sublabel": "/api/auth/sendOtp",
+      "sources": [
+        {
+          "path": "client/app/api/auth/sendOtp/route.ts",
+          "line": 43,
+          "end_line": 130
+        }
+      ]
+    },
+    {
+      "id": "server",
+      "type": "backend",
+      "label": "Render Backend",
+      "sublabel": "Express API",
+      "sources": [
+        {
+          "path": "server/src/controllers/authController.ts",
+          "line": 80,
+          "end_line": 145
+        }
+      ]
+    },
+    {
+      "id": "mongo",
+      "type": "database",
+      "label": "MongoDB Atlas",
+      "sublabel": "Users & OTPs",
+      "sources": [
+        {
+          "path": "server/src/models/otp.ts",
+          "line": 1,
+          "end_line": 28
+        }
+      ]
+    },
+    { "id": "smtp", "type": "external", "label": "Gmail SMTP", "sublabel": "Port 465 SSL" },
+    {
+      "id": "socket",
+      "type": "messagebus",
+      "label": "Socket.IO",
+      "sublabel": "WSS Realtime",
+      "sources": [
+        {
+          "path": "server/src/app.ts",
+          "line": 65,
+          "end_line": 83
+        }
+      ]
+    }
+  ],
+  "segments": [
+    { "from": 150, "to": 325, "label": "1. Credential Verification" },
+    { "from": 340, "to": 585, "label": "2. OTP Generation & SMTP Dispatch" },
+    { "from": 605, "to": 860, "label": "3. OTP Verification & Socket Handshake" }
+  ],
+  "messages": [
+    { "id": "submit-login", "from": "user", "to": "client", "y": 170, "label": "submit login (email + pass)", "variant": "default" },
+    { "id": "post-login", "from": "client", "to": "server", "y": 205, "label": "POST /api/auth/login", "variant": "emphasis" },
+    { "id": "query-user", "from": "server", "to": "mongo", "y": 240, "label": "findOne({ email })", "variant": "default" },
+    { "id": "user-record", "from": "mongo", "to": "server", "y": 275, "label": "user record + bcrypt verify", "variant": "return" },
+    { "id": "login-ok", "from": "server", "to": "client", "y": 310, "label": "200 OK (requiresOtp: true)", "variant": "return" },
+
+    { "id": "call-send-otp", "from": "client", "to": "vercel", "y": 355, "label": "POST /api/auth/sendOtp", "variant": "emphasis" },
+    { "id": "dispatch-backend", "from": "vercel", "to": "server", "y": 390, "label": "POST /api/auth/sendOtp (x-vercel-dispatch)", "variant": "security" },
+    { "id": "save-otp", "from": "server", "to": "mongo", "y": 425, "label": "findOneAndUpdate OTP (5m TTL)", "variant": "default" },
+    { "id": "otp-saved", "from": "mongo", "to": "server", "y": 460, "label": "saved OTP record", "variant": "return" },
+    { "id": "return-otp", "from": "server", "to": "vercel", "y": 495, "label": "{ otp, email }", "variant": "return" },
+    { "id": "send-smtp", "from": "vercel", "to": "smtp", "y": 530, "label": "sendMail(:465 TLS)", "variant": "security" },
+    { "id": "smtp-success", "from": "smtp", "to": "user", "y": 565, "label": "deliver 6-digit OTP code", "variant": "return" },
+
+    { "id": "enter-otp", "from": "user", "to": "client", "y": 625, "label": "enter 6-digit code", "variant": "default" },
+    { "id": "verify-otp", "from": "client", "to": "server", "y": 660, "label": "POST /api/auth/verifyOtp", "variant": "security" },
+    { "id": "check-otp", "from": "server", "to": "mongo", "y": 695, "label": "verify & delete OTP record", "variant": "default" },
+    { "id": "otp-valid", "from": "mongo", "to": "server", "y": 730, "label": "OTP match confirmed", "variant": "return" },
+    { "id": "jwt-token", "from": "server", "to": "client", "y": 765, "label": "200 OK { token: JWT (7d), user }", "variant": "return" },
+    { "id": "socket-connect", "from": "client", "to": "socket", "y": 800, "label": "io.connect(auth: { token })", "variant": "emphasis" },
+    { "id": "socket-ack", "from": "socket", "to": "client", "y": 835, "label": "handshake verified + online", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "client", "from": 170, "to": 315, "type": "frontend" },
+    { "participant": "server", "from": 205, "to": 312, "type": "backend" },
+    { "participant": "mongo", "from": 240, "to": 278, "type": "database" },
+
+    { "participant": "client", "from": 355, "to": 570, "type": "frontend" },
+    { "participant": "vercel", "from": 355, "to": 535, "type": "security" },
+    { "participant": "server", "from": 390, "to": 498, "type": "backend" },
+    { "participant": "mongo", "from": 425, "to": 463, "type": "database" },
+    { "participant": "smtp", "from": 530, "to": 568, "type": "external" },
+
+    { "participant": "client", "from": 625, "to": 840, "type": "frontend" },
+    { "participant": "server", "from": 660, "to": 770, "type": "backend" },
+    { "participant": "mongo", "from": 695, "to": 733, "type": "database" },
+    { "participant": "socket", "from": 800, "to": 838, "type": "messagebus" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Credential Check",
+      "items": [
+        "User credentials submitted via POST /api/auth/login",
+        "Bcrypt hashes validated against MongoDB before triggering 2FA"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Render Port 465 Bypass",
+      "items": [
+        "Render Free firewall blocks outbound mail ports (465/587)",
+        "Render generates OTP and returns it securely to Vercel Serverless",
+        "Vercel Serverless dispatches Nodemailer over open Port 465 TLS"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "JWT & Realtime Handshake",
+      "items": [
+        "Valid OTP deletes MongoDB code and signs 7-day JWT token",
+        "Socket.IO connection middleware verifies token before granting chat access"
+      ]
+    }
+  ]
+}

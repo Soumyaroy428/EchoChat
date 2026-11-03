@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "workflow",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\candidate.json",
+    "sha256": "6881b4191de86175640a9d3f9be46214f6fb08bc780b966f0ae4144fe4955427",
+    "bytes": 10302
+  },
+  "artifact": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\deployment-pipeline.html",
+    "sha256": "2cda927d5d1d400b91f5ea4a4e93adb365be34edd7416917c40c82e2578d1a94",
+    "bytes": 858765
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\review-2\\deployment-pipeline.finalize.json",
+    "summaryReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\review-2\\deployment-pipeline.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\review-2\\deployment-pipeline.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-02T17:00:46.292Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 13488,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

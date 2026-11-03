@@ -130,19 +130,19 @@
 }
 
 /* ==============================
-   ECHOCHAT - CHAT PANEL & WALLPAPER
+   ECHOCHAT - CHAT PANEL & WALLPAPER (MODERN GLASSMORPHISM)
    ============================== */
 
 :root {
-  --bg-main: #05090f;
-  --bg-sidebar: #080f19;
-  --bg-panel: #0b1521;
-  --bg-card: #0a1620;
-  --border-echo: rgba(148, 163, 184, 0.14);
-  --text-primary: #f4f7fb;
-  --text-secondary: #94a3b8;
-  --accent-green: #00e6a0;
-  --accent-blue: #078bff;
+  --bg-main: #0F172A;
+  --bg-sidebar: #0B1222;
+  --bg-panel: #1E293B;
+  --bg-card: #162032;
+  --border-echo: rgba(148, 163, 184, 0.12);
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --accent-green: #10B981;
+  --accent-cyan: #06B6D4;
 }
 
 /* Main chat panel */
@@ -154,30 +154,30 @@
   min-height: 0;
   isolation: isolate;
   overflow: hidden;
-  background: #060d16;
+  background: #0F172A;
   border: 1px solid var(--border-echo);
-  border-radius: 30px;
+  border-radius: 24px;
 }
 
-/* Neon wallpaper */
+/* Minimalist dark pattern overlay */
 .chat-panel::before {
   position: absolute;
   z-index: -2;
   inset: 0;
   content: "";
-  background-image: url("/images/echo-chat-wallpaper.png");
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.03) 0%, transparent 60%),
+    radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.04) 0%, transparent 40%),
+    url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2394a3b8' fill-opacity='0.035' fill-rule='evenodd'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
-/* Darken the wallpaper without hiding its neon icons */
 .chat-panel::after {
   position: absolute;
   z-index: -1;
   inset: 0;
   content: "";
-  background: rgba(3, 10, 18, 0.56);
+  background: rgba(15, 23, 42, 0.65);
   pointer-events: none;
 }
 
@@ -187,12 +187,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 82px;
-  padding: 14px 22px;
-  background: rgba(5, 12, 21, 0.84);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.17);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  min-height: 68px;
+  padding: 12px 20px;
+  background: rgba(30, 41, 59, 0.85);
+  border-bottom: 1px solid var(--border-echo);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 /* Empty chat state */
@@ -203,64 +203,66 @@
   align-items: center;
   justify-content: center;
   min-height: 0;
-  padding: 28px;
+  padding: 24px;
   overflow: auto;
 }
 
 .empty-chat-card {
-  width: min(100%, 540px);
+  width: min(100%, 480px);
   padding: 32px 28px;
   text-align: center;
-  background: rgba(5, 14, 25, 0.94);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 25px;
-  box-shadow: 0 20px 65px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(30, 41, 59, 0.82);
+  border: 1px solid var(--border-echo);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .empty-chat-icon {
   display: grid;
   place-items: center;
-  width: 66px;
-  height: 66px;
-  margin: 0 auto 20px;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 18px;
   color: var(--accent-green);
   background: linear-gradient(
     135deg,
-    rgba(0, 230, 160, 0.16),
-    rgba(0, 139, 255, 0.18)
+    rgba(16, 185, 129, 0.16),
+    rgba(6, 182, 212, 0.18)
   );
-  border: 1px solid rgba(0, 230, 160, 0.12);
-  border-radius: 20px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 18px;
 }
 
 .empty-chat-card h2 {
-  margin: 0 0 12px;
-  color: #f5f7fb;
-  font-family: Georgia, serif;
-  font-size: clamp(19px, 2vw, 23px);
+  margin: 0 0 10px;
+  color: #F8FAFC;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .empty-chat-card p {
-  max-width: 440px;
-  margin: 0 auto 24px;
-  color: #aeb9c9;
+  max-width: 400px;
+  margin: 0 auto 20px;
+  color: #94A3B8;
   font-size: 13px;
-  line-height: 1.8;
+  line-height: 1.6;
 }
 
 .empty-chat-hint {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  padding: 11px 18px;
-  color: #d9e0e9;
-  background: rgba(255, 255, 255, 0.055);
+  gap: 8px;
+  padding: 8px 16px;
+  color: #F8FAFC;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-echo);
-  border-radius: 28px;
+  border-radius: 9999px;
   font-size: 12px;
+  font-weight: 500;
 }
 
 .status-dot {
@@ -269,15 +271,20 @@
   flex-shrink: 0;
   background: var(--accent-green);
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(0, 230, 160, 0.45);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
 }
 
-/* Message composer */
+/* Message composer - floating glass dock */
 .message-composer {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  background: rgba(5, 12, 21, 0.92);
-  border-top: 1px solid var(--border-echo);
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(30, 41, 59, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 9999px;
+  margin: 0 16px 14px 16px;
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.5);
 }

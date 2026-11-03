@@ -773,10 +773,10 @@ export default function ChatBar({
                     }`}
                   >
                     <div
-                      className={`group relative max-w-[80%] rounded-[1.5rem] border border-white/10 px-4 py-3 text-sm leading-6 shadow-[0_10px_30px_-25px_rgba(0,0,0,0.9)] ${
+                      className={`group relative max-w-[80%] md:max-w-[70%] rounded-[18px] px-4 py-3 text-sm leading-relaxed shadow-md ${
                         message.sender === "me"
-                          ? "rounded-br-[0.4rem] bg-[#17a1239f] text-white"
-                          : "rounded-bl-[0.4rem] bg-[#191a1c] text-gray-200"
+                          ? "rounded-br-[4px] bg-[#10B981] text-[#06241b] shadow-[#10B981]/15 font-medium border border-transparent"
+                          : "rounded-bl-[4px] bg-[#334155] text-[#F8FAFC] border border-[rgba(255,255,255,0.06)]"
                       }`}
                     >
                       <div className="flex items-start gap-2">
@@ -890,15 +890,17 @@ export default function ChatBar({
                         </DropdownMenu>
                       </div>
 
-                      <div className="mt-2 flex items-center justify-end gap-2 text-[11px] text-gray-200/80">
+                      <div className={`mt-1 flex items-center justify-end gap-1.5 text-[10px] ${
+                        message.sender === "me" ? "text-[#063326]" : "text-[#94A3B8]"
+                      }`}>
                         <span>{message.time}</span>
 
                         {message.sender === "me" && (
-                          <span className={message.status === "read" ? "text-blue-400" : "text-gray-400"}>
+                          <span className={message.status === "read" ? "text-[#063326]" : "text-[#063326]/70"}>
                             {message.status === "sent" ? (
-                              <Check size={14} />
+                              <Check size={13} strokeWidth={2.5} />
                             ) : (
-                              <CheckCheck size={14} />
+                              <CheckCheck size={14} strokeWidth={2.5} />
                             )}
                           </span>
                         )}
@@ -909,11 +911,11 @@ export default function ChatBar({
               </div>
             </div>
 
-            {/* Message input */}
+            {/* Message input dock */}
             <div className="message-composer">
               <form
                 onSubmit={handleSend}
-                className="flex items-center gap-3 rounded-full bg-[#15202f] px-4 py-3 text-gray-200 shadow-[0_10px_40px_-30px_rgba(0,0,0,0.8)]"
+                className="flex items-center gap-2 w-full text-[#F8FAFC]"
               >
                 {/* Attach */}
                 <input
@@ -950,8 +952,9 @@ export default function ChatBar({
                 />
                 <button
                   type="button"
-                  className="rounded-full p-2 text-gray-400 transition hover:bg-white/5 hover:text-white"
+                  className="rounded-full p-2 text-[#94A3B8] transition hover:bg-white/10 hover:text-[#10B981]"
                   aria-label="Attach"
+                  title="Attach file"
                   onClick={() => document.getElementById("media-upload")?.click()}
                 >
                   <Paperclip size={18} />
@@ -959,8 +962,9 @@ export default function ChatBar({
 
                 <button
                   type="button"
-                  className="rounded-full p-2 text-gray-400 transition hover:bg-white/5 hover:text-white"
+                  className="rounded-full p-2 text-[#94A3B8] transition hover:bg-white/10 hover:text-[#06B6D4]"
                   aria-label="Send location"
+                  title="Share location"
                   onClick={sendLocation}
                 >
                   <MapPin size={18} />
@@ -969,8 +973,9 @@ export default function ChatBar({
                 {/* Emoji */}
                 <button
                   type="button"
-                  className="rounded-full p-2 text-gray-400 transition hover:bg-white/5 hover:text-white"
+                  className="rounded-full p-2 text-[#94A3B8] transition hover:bg-white/10 hover:text-[#F8FAFC]"
                   aria-label="Emoji"
+                  title="Choose emoji"
                 >
                   <Smile size={18} />
                 </button>
@@ -987,27 +992,31 @@ export default function ChatBar({
                     }, 2000);
                   }}
                   type="text"
-                  placeholder="Type a message"
-                  className="flex-1 bg-transparent outline-none placeholder:text-gray-500"
+                  placeholder="Type a message..."
+                  className="flex-1 bg-transparent border-0 text-sm text-[#F8FAFC] placeholder-[#64748B] outline-none px-2 py-1"
                 />
 
                 {/* Send or Record */}
                 {newMessage.trim() ? (
                   <button
                     type="submit"
-                    className="rounded-full bg-[#0d6b50] p-3 text-white transition hover:bg-[#109e72]"
+                    className="rounded-full bg-[#10B981] hover:bg-[#0ea572] p-2.5 text-[#0F172A] shadow-md shadow-[#10B981]/25 transition active:scale-95"
                     aria-label="Send message"
+                    title="Send message"
                   >
-                    <Send size={18} />
+                    <Send size={16} />
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={() => isRecording ? stopRecording() : startRecording()}
-                    className={`rounded-full p-3 text-white transition ${isRecording ? "bg-red-500 animate-pulse" : "bg-[#0d6b50] hover:bg-[#109e72]"}`}
+                    className={`rounded-full p-2.5 transition active:scale-95 ${
+                      isRecording ? "bg-red-500 text-white animate-pulse" : "bg-[#10B981] hover:bg-[#0ea572] text-[#0F172A] shadow-md shadow-[#10B981]/20"
+                    }`}
                     aria-label="Record voice note"
+                    title="Voice note"
                   >
-                    {isRecording ? <Square size={18} /> : <Mic size={18} />}
+                    {isRecording ? <Square size={16} /> : <Mic size={16} />}
                   </button>
                 )}
               </form>

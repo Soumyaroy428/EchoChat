@@ -1,0 +1,454 @@
+{
+  "schema_version": 1,
+  "diagram_type": "erd",
+  "meta": {
+    "title": "EchoChat Database Schema",
+    "subtitle": "Mongoose collections, indexed attributes, and relation graphs",
+    "locale": "en",
+    "output": ".archify/erd-database-schema-20261102-223000/database-schema.html",
+    "quality_profile": "standard",
+    "repository": {
+      "url": "https://github.com/Soumyaroy428/EchoChat.git",
+      "revision": "9aa2080de3bb71802f3352f05d4cc627cae0bdf7"
+    },
+    "views": [
+      {
+        "id": "identity",
+        "label": "Identity & Auth",
+        "focus": [
+          "User",
+          "Otp"
+        ],
+        "note": "Core credentials, profile configuration, and time-bounded OTP verification codes."
+      },
+      {
+        "id": "messaging",
+        "label": "Messaging Graph",
+        "focus": [
+          "User",
+          "NewContact",
+          "MessageHistory",
+          "Group"
+        ],
+        "note": "Direct contact address book, 1-on-1 and group chat histories with media."
+      },
+      {
+        "id": "social",
+        "label": "Ephemeral Stories",
+        "focus": [
+          "User",
+          "Status"
+        ],
+        "note": "24-hour status updates with multimedia and viewer tracking records."
+      }
+    ]
+  },
+  "layout": {
+    "mode": "grid",
+    "gapY": 42,
+    "gapX": 75
+  },
+  "entities": [
+    {
+      "id": "User",
+      "label": "User",
+      "tag": "accounts",
+      "row": 0,
+      "col": 0,
+      "width": 255,
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "key": "uk"
+        },
+        {
+          "name": "mobile",
+          "type": "String"
+        },
+        {
+          "name": "password",
+          "type": "String"
+        },
+        {
+          "name": "name",
+          "type": "String"
+        },
+        {
+          "name": "isOnline",
+          "type": "Boolean"
+        },
+        {
+          "name": "lastSeen",
+          "type": "Date"
+        },
+        {
+          "name": "about",
+          "type": "String"
+        },
+        {
+          "name": "publicKey",
+          "type": "String"
+        }
+      ],
+      "sources": [
+        {
+          "path": "server/src/models/User.ts",
+          "line": 3,
+          "end_line": 24,
+          "label": "IUser Schema"
+        }
+      ]
+    },
+    {
+      "id": "NewContact",
+      "label": "NewContact",
+      "tag": "contacts",
+      "row": 1,
+      "col": 0,
+      "width": 255,
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "ownerId",
+          "type": "ObjectId",
+          "key": "fk",
+          "references": "User._id"
+        },
+        {
+          "name": "contactUserId",
+          "type": "ObjectId",
+          "key": "fk",
+          "references": "User._id"
+        },
+        {
+          "name": "firstName",
+          "type": "String"
+        },
+        {
+          "name": "lastName",
+          "type": "String"
+        },
+        {
+          "name": "username",
+          "type": "String"
+        },
+        {
+          "name": "mobile",
+          "type": "String"
+        },
+        {
+          "name": "email",
+          "type": "String"
+        },
+        {
+          "name": "active",
+          "type": "Boolean"
+        }
+      ],
+      "sources": [
+        {
+          "path": "server/src/models/newContact.ts",
+          "line": 3,
+          "end_line": 46
+        }
+      ]
+    },
+    {
+      "id": "MessageHistory",
+      "label": "MessageHistory",
+      "tag": "messaging",
+      "row": 0,
+      "col": 1,
+      "width": 265,
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "senderId",
+          "type": "String",
+          "key": "fk",
+          "references": "User._id"
+        },
+        {
+          "name": "receiverId",
+          "type": "String",
+          "key": "fk",
+          "references": "User._id"
+        },
+        {
+          "name": "groupId",
+          "type": "String",
+          "key": "fk",
+          "references": "Group._id"
+        },
+        {
+          "name": "content",
+          "type": "String"
+        },
+        {
+          "name": "status",
+          "type": "String"
+        },
+        {
+          "name": "messageType",
+          "type": "String"
+        },
+        {
+          "name": "mediaUrl",
+          "type": "String"
+        },
+        {
+          "name": "timestamp",
+          "type": "Date"
+        }
+      ],
+      "sources": [
+        {
+          "path": "server/src/models/messageHistory.ts",
+          "line": 3,
+          "end_line": 43
+        }
+      ]
+    },
+    {
+      "id": "Group",
+      "label": "Group",
+      "tag": "groups",
+      "row": 1,
+      "col": 1,
+      "width": 265,
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "name",
+          "type": "String"
+        },
+        {
+          "name": "description",
+          "type": "String"
+        },
+        {
+          "name": "createdBy",
+          "type": "String",
+          "key": "fk",
+          "references": "User._id"
+        },
+        {
+          "name": "admins",
+          "type": "String[]"
+        },
+        {
+          "name": "members",
+          "type": "String[]"
+        },
+        {
+          "name": "avatar",
+          "type": "String"
+        }
+      ],
+      "sources": [
+        {
+          "path": "server/src/models/Group.ts",
+          "line": 3,
+          "end_line": 23,
+          "label": "IGroup Schema"
+        }
+      ]
+    },
+    {
+      "id": "Otp",
+      "label": "Otp",
+      "tag": "security",
+      "row": 0,
+      "col": 2,
+      "width": 245,
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "key": "fk",
+          "references": "User.email"
+        },
+        {
+          "name": "phonenumber",
+          "type": "String"
+        },
+        {
+          "name": "otp",
+          "type": "String"
+        },
+        {
+          "name": "otpExpiresAt",
+          "type": "Date"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date"
+        }
+      ],
+      "sources": [
+        {
+          "path": "server/src/models/otp.ts",
+          "line": 3,
+          "end_line": 26
+        }
+      ]
+    },
+    {
+      "id": "Status",
+      "label": "Status",
+      "tag": "stories",
+      "row": 1,
+      "col": 2,
+      "width": 245,
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "user",
+          "type": "ObjectId",
+          "key": "fk",
+          "references": "User._id"
+        },
+        {
+          "name": "mediaType",
+          "type": "String"
+        },
+        {
+          "name": "mediaUrl",
+          "type": "String"
+        },
+        {
+          "name": "text",
+          "type": "String"
+        },
+        {
+          "name": "backgroundColor",
+          "type": "String"
+        },
+        {
+          "name": "expiresAt",
+          "type": "Date"
+        }
+      ],
+      "sources": [
+        {
+          "path": "server/src/models/Status.ts",
+          "line": 8,
+          "end_line": 18,
+          "label": "IStatus Schema"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel_otp_user",
+      "from": "Otp",
+      "to": "User",
+      "label": "authenticates",
+      "fromCardinality": "many",
+      "fromOptional": true,
+      "toCardinality": "one",
+      "identifying": false
+    },
+    {
+      "id": "rel_contact_owner",
+      "from": "NewContact",
+      "to": "User",
+      "label": "owned by",
+      "fromCardinality": "many",
+      "toCardinality": "one"
+    },
+    {
+      "id": "rel_msg_sender",
+      "from": "MessageHistory",
+      "to": "User",
+      "label": "sent by",
+      "fromCardinality": "many",
+      "toCardinality": "one"
+    },
+    {
+      "id": "rel_msg_group",
+      "from": "MessageHistory",
+      "to": "Group",
+      "label": "belongs to",
+      "labelDx": 1,
+      "labelDy": 24,
+      "fromCardinality": "many",
+      "fromOptional": true,
+      "toCardinality": "one",
+      "identifying": false
+    },
+    {
+      "id": "rel_group_creator",
+      "from": "Group",
+      "to": "User",
+      "label": "created by",
+      "fromCardinality": "many",
+      "toCardinality": "one"
+    },
+    {
+      "id": "rel_status_user",
+      "from": "Status",
+      "to": "User",
+      "label": "posted by",
+      "fromCardinality": "many",
+      "toCardinality": "one"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Identity & Relationships",
+      "items": [
+        "User is the central account entity; email is strictly unique for login and verification.",
+        "NewContact records reference the owner account and optionally linked contact user profiles.",
+        "Status stories and group creations maintain direct foreign-key associations to User._id."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Chat Delivery & Media",
+      "items": [
+        "MessageHistory stores direct and channel messages with status progression (sent -> delivered -> read).",
+        "Supports mixed payloads: plain text, rich audio, image, attachment URLs, and E2EE metadata.",
+        "Optional groupId links messages to multi-member Group rooms with admin hierarchies."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Security & Profile Resolution",
+      "items": [
+        "Otp records link directly to User.email via foreign-key relationship, expiring after 5 minutes.",
+        "Upon OTP verification, the server authenticates the session and returns the full User profile.",
+        "Frontend persists the verified session token and immediately displays the user profile dashboard."
+      ]
+    }
+  ]
+}

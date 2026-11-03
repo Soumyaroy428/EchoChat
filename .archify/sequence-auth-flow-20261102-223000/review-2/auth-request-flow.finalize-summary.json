@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\candidate.json",
+    "sha256": "9224969e3c695400f56ac2f62d1cccbc0720132ab2a2a8fefe25f416e347ec7d",
+    "bytes": 6506
+  },
+  "artifact": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\auth-request-flow.html",
+    "sha256": "7d6d64415126e38e75694589d3d8c23a9260155321ff057223ece3a72ed78ac1",
+    "bytes": 850028
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\review-2\\auth-request-flow.finalize.json",
+    "summaryReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\review-2\\auth-request-flow.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\review-2\\auth-request-flow.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-02T17:00:46.292Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 18418,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

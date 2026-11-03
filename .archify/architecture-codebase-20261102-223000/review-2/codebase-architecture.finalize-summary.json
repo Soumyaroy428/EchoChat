@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\architecture-codebase-20261102-223000\\candidate.json",
+    "sha256": "70833d04f15da9617a35a0999af9bc5386569f526c3d359045dc2aa49bbc998e",
+    "bytes": 6179
+  },
+  "artifact": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\architecture-codebase-20261102-223000\\codebase-architecture.html",
+    "sha256": "91ddc51fa6132679c3bfee71a0710dae781d0683d5b32d574d1e976a0ebc35fc",
+    "bytes": 851928
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\architecture-codebase-20261102-223000\\review-2\\codebase-architecture.finalize.json",
+    "summaryReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\architecture-codebase-20261102-223000\\review-2\\codebase-architecture.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\architecture-codebase-20261102-223000\\review-2\\codebase-architecture.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-02T17:00:46.292Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 25135,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "routesOverSuggestedBends": 2
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [],
+      "detours": [
+        {
+          "relationship": {
+            "id": "backend-to-push",
+            "from": "render_backend",
+            "to": "webpush",
+            "label": "VAPID push",
+            "collectionIndex": 7,
+            "artifactIndex": 8
+          },
+          "bends": 3,
+          "stretch": 1
+        },
+        {
+          "relationship": {
+            "id": "backend-to-media",
+            "from": "render_backend",
+            "to": "cloudinary",
+            "label": "upload media",
+            "collectionIndex": 8,
+            "artifactIndex": 9
+          },
+          "bends": 3,
+          "stretch": 1
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "render_backend → webpush needs 3 bends: move node render_backend or webpush so they share a row or column with matching centers, or sit diagonally with a clear corner.",
+      "render_backend → cloudinary needs 3 bends: move node render_backend or cloudinary so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

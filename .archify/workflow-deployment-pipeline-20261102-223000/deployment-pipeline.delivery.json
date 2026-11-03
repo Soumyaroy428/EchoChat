@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "844ae577-ea28-4e69-85b9-0160d1fae9e7",
+  "status": "current",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\candidate.json",
+  "output": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\deployment-pipeline.html",
+  "specification": {
+    "sha256": "6881b4191de86175640a9d3f9be46214f6fb08bc780b966f0ae4144fe4955427",
+    "bytes": 10302
+  },
+  "artifact": {
+    "sha256": "2cda927d5d1d400b91f5ea4a4e93adb365be34edd7416917c40c82e2578d1a94",
+    "bytes": 858765
+  }
+}

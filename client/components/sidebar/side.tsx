@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare, Phone, Radio, UserCircle } from "lucide-react";
+import { MessageSquare, Phone, Radio, UserCircle, Settings } from "lucide-react";
 
 type SideProps = {
   hasActiveChat: boolean;
@@ -35,62 +35,91 @@ export default function Side({
   };
 
   return (
-    <aside className="h-full w-full rounded-[1.5rem] md:rounded-[2rem] border border-white/10 bg-[#07101b]/95 p-3 md:p-5 shadow-[0_10px_60px_-40px_rgba(0,0,0,0.9)] flex flex-row md:flex-col items-center justify-around md:justify-start gap-2 md:gap-5">
-      {/* Chats Tab */}
-      <button
-        type="button"
-        onClick={() => handleTab("chats")}
-        aria-label="Chats"
-        className={`flex h-12 w-12 md:h-16 md:w-16 flex-shrink-0 items-center justify-center rounded-[1rem] md:rounded-[1.5rem] border transition ${
-          currentTab === "chats"
-            ? "border-blue-500/30 bg-blue-500/20 text-blue-300 shadow-sm shadow-blue-500/10"
-            : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
-        }`}
-      >
-        <MessageSquare size={20} className="md:w-6 md:h-6" />
-      </button>
+    <aside className="h-full w-full rounded-2xl md:rounded-3xl border border-[rgba(148,163,184,0.12)] bg-[#0B1222]/90 backdrop-blur-xl p-2.5 md:p-3 shadow-2xl flex flex-row md:flex-col items-center justify-around md:justify-between gap-2 z-20">
+      
+      {/* Top Section: Brand Glyph + Nav Actions */}
+      <div className="flex flex-row md:flex-col items-center gap-2 md:gap-3 w-full">
+        {/* Logo Glyph */}
+        <div 
+          onClick={() => handleTab("chats")}
+          className="hidden md:flex w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#10B981] to-[#06B6D4] p-0.5 shadow-lg shadow-[#10B981]/15 mb-2 cursor-pointer hover:scale-105 transition-transform items-center justify-center"
+          title="ECHO-CHAT"
+        >
+          <div className="w-full h-full bg-[#0F172A] rounded-[14px] flex items-center justify-center">
+            <svg className="w-5 h-5 text-[#10B981]" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+        </div>
 
-      {/* Calls Tab */}
-      <button
-        type="button"
-        onClick={() => handleTab("calls")}
-        aria-label="Calls"
-        className={`flex h-12 w-12 md:h-16 md:w-16 flex-shrink-0 items-center justify-center rounded-[1rem] md:rounded-[1.5rem] border transition ${
-          currentTab === "calls"
-            ? "border-emerald-500/30 bg-emerald-500/20 text-emerald-300 shadow-sm shadow-emerald-500/10"
-            : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
-        }`}
-      >
-        <Phone
-          size={18}
-          className={hasActiveChat ? "text-emerald-400" : currentTab === "calls" ? "text-emerald-300" : "text-gray-400"}
-        />
-      </button>
+        {/* Chats Tab */}
+        <button
+          type="button"
+          onClick={() => handleTab("chats")}
+          aria-label="Chats"
+          title="All Chats"
+          className={`relative group flex h-11 w-11 md:h-12 md:w-12 flex-shrink-0 items-center justify-center rounded-xl md:rounded-2xl transition-all ${
+            currentTab === "chats"
+              ? "bg-[#10B981]/15 text-[#10B981] shadow-sm shadow-[#10B981]/10 border border-[#10B981]/30"
+              : "text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B]/60"
+          }`}
+        >
+          {currentTab === "chats" && (
+            <span className="hidden md:block absolute left-0 w-1 h-5 bg-[#10B981] rounded-r-full shadow-[0_0_10px_#10B981]"></span>
+          )}
+          <MessageSquare className="w-5 h-5 transition-transform group-hover:scale-110" strokeWidth={2} />
+          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#10B981] ring-2 ring-[#0B1222]"></span>
+        </button>
 
-      {/* Status / Stories Tab */}
-      <button
-        type="button"
-        onClick={() => handleTab("status")}
-        aria-label="Status & Stories"
-        className={`flex h-12 w-12 md:h-16 md:w-16 flex-shrink-0 items-center justify-center rounded-[1rem] md:rounded-[1.5rem] border transition ${
-          currentTab === "status"
-            ? "border-emerald-500/30 bg-emerald-500/20 text-emerald-300 shadow-sm shadow-emerald-500/10"
-            : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
-        }`}
-      >
-        <Radio size={20} className="md:w-6 md:h-6" />
-      </button>
+        {/* Calls Tab */}
+        <button
+          type="button"
+          onClick={() => handleTab("calls")}
+          aria-label="Calls"
+          title="Voice & Video Calls"
+          className={`relative group flex h-11 w-11 md:h-12 md:w-12 flex-shrink-0 items-center justify-center rounded-xl md:rounded-2xl transition-all ${
+            currentTab === "calls"
+              ? "bg-[#10B981]/15 text-[#10B981] shadow-sm shadow-[#10B981]/10 border border-[#10B981]/30"
+              : "text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B]/60"
+          }`}
+        >
+          {currentTab === "calls" && (
+            <span className="hidden md:block absolute left-0 w-1 h-5 bg-[#10B981] rounded-r-full shadow-[0_0_10px_#10B981]"></span>
+          )}
+          <Phone className={`w-5 h-5 transition-transform group-hover:scale-110 ${hasActiveChat ? "text-[#10B981]" : ""}`} strokeWidth={2} />
+        </button>
 
-      {/* Profile Tab */}
+        {/* Status / Stories Tab */}
+        <button
+          type="button"
+          onClick={() => handleTab("status")}
+          aria-label="Status & Stories"
+          title="Status Stories"
+          className={`relative group flex h-11 w-11 md:h-12 md:w-12 flex-shrink-0 items-center justify-center rounded-xl md:rounded-2xl transition-all ${
+            currentTab === "status"
+              ? "bg-[#06B6D4]/15 text-[#06B6D4] shadow-sm shadow-[#06B6D4]/10 border border-[#06B6D4]/30"
+              : "text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B]/60"
+          }`}
+        >
+          {currentTab === "status" && (
+            <span className="hidden md:block absolute left-0 w-1 h-5 bg-[#06B6D4] rounded-r-full shadow-[0_0_10px_#06B6D4]"></span>
+          )}
+          <Radio className="w-5 h-5 transition-transform group-hover:scale-110" strokeWidth={2} />
+          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#06B6D4] ring-2 ring-[#0B1222]"></span>
+        </button>
+      </div>
+
+      {/* Bottom Profile Avatar */}
       <button
         type="button"
         onClick={() => handleTab("profile")}
         aria-label="Open profile settings"
         aria-pressed={currentTab === "profile"}
-        className={`md:mt-auto flex h-12 w-12 md:h-16 md:w-16 flex-shrink-0 items-center justify-center rounded-[1rem] md:rounded-[1.5rem] border transition ${
+        title={userName ? `${userName} (Profile)` : "Your Profile"}
+        className={`relative group flex h-11 w-11 md:h-12 md:w-12 flex-shrink-0 items-center justify-center rounded-full transition-all ${
           currentTab === "profile"
-            ? "border-blue-400/50 bg-blue-500/20 text-blue-200"
-            : "border-white/10 bg-[#131c2b] text-white hover:bg-white/10"
+            ? "ring-2 ring-[#10B981] p-0.5 shadow-lg shadow-[#10B981]/20"
+            : "ring-1 ring-[rgba(148,163,184,0.2)] hover:ring-[#10B981]"
         }`}
       >
         {avatar ? (
@@ -98,11 +127,14 @@ export default function Side({
           <img
             src={avatar}
             alt={userName ? `${userName}'s profile` : "Your profile"}
-            className="h-full w-full rounded-[1rem] md:rounded-[2rem] object-cover"
+            className="h-full w-full rounded-full object-cover"
           />
         ) : (
-          <UserCircle size={24} className="md:w-[26px] md:h-[26px]" />
+          <div className="w-full h-full rounded-full bg-[#1E293B] flex items-center justify-center text-[#94A3B8] group-hover:text-[#F8FAFC]">
+            <UserCircle size={22} />
+          </div>
         )}
+        <span className="absolute bottom-0 right-0 w-3 h-3 bg-[#10B981] border-2 border-[#0B1222] rounded-full"></span>
       </button>
     </aside>
   );

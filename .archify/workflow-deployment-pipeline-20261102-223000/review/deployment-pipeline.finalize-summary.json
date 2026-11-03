@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "workflow",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\candidate.json",
+    "sha256": "6881b4191de86175640a9d3f9be46214f6fb08bc780b966f0ae4144fe4955427",
+    "bytes": 10302
+  },
+  "artifact": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\deployment-pipeline.html",
+    "sha256": "2cda927d5d1d400b91f5ea4a4e93adb365be34edd7416917c40c82e2578d1a94",
+    "bytes": 858765
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "fail"
+  },
+  "failedStage": "browser-check",
+  "diagnostics": [
+    {
+      "code": "viewer/temp-cleanup-incomplete",
+      "severity": "error",
+      "message": "Browser cleanup could not safely finish; inspect the reported retained path.",
+      "subject": {
+        "artifact": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\deployment-pipeline.html"
+      },
+      "evidence": {
+        "reason": "Chrome did not exit; retained temporary profile \"C:\\Users\\soumy\\AppData\\Local\\Temp\\archify-visual-check-profile-Qx69dY\".",
+        "retainedDirectory": "C:\\Users\\soumy\\AppData\\Local\\Temp\\archify-visual-check-profile-Qx69dY"
+      },
+      "supportedFixes": [
+        "resolve the reported process or filesystem failure; verify directory ownership before manual cleanup"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\review\\deployment-pipeline.finalize.json",
+    "summaryReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\review\\deployment-pipeline.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\workflow-deployment-pipeline-20261102-223000\\review\\deployment-pipeline.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-02T17:00:46.292Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 34982,
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  }
+}

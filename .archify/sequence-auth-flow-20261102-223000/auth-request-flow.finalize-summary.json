@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\candidate.json",
+    "sha256": "9224969e3c695400f56ac2f62d1cccbc0720132ab2a2a8fefe25f416e347ec7d",
+    "bytes": 6506
+  },
+  "artifact": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\auth-request-flow.html",
+    "sha256": "7d6d64415126e38e75694589d3d8c23a9260155321ff057223ece3a72ed78ac1",
+    "bytes": 850028
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "fail"
+  },
+  "failedStage": "browser-check",
+  "diagnostics": [
+    {
+      "code": "viewer/temp-cleanup-incomplete",
+      "severity": "error",
+      "message": "Browser cleanup could not safely finish; inspect the reported retained path.",
+      "subject": {
+        "artifact": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\auth-request-flow.html"
+      },
+      "evidence": {
+        "reason": "Chrome did not exit; retained temporary profile \"C:\\Users\\soumy\\AppData\\Local\\Temp\\archify-visual-check-profile-g77UAY\".",
+        "retainedDirectory": "C:\\Users\\soumy\\AppData\\Local\\Temp\\archify-visual-check-profile-g77UAY"
+      },
+      "supportedFixes": [
+        "resolve the reported process or filesystem failure; verify directory ownership before manual cleanup"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\auth-request-flow.finalize.json",
+    "summaryReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\auth-request-flow.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\sequence-auth-flow-20261102-223000\\auth-request-flow.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-02T17:00:46.292Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 41329,
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  }
+}

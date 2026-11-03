@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\architecture-codebase-20261102-223000\\candidate.json",
+    "sha256": "c72970bcb2f3b9bdb1f5d5749a2a8fd7d2c8d783cf922c731278794d681adef6",
+    "bytes": 6128
+  },
+  "artifact": {
+    "path": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\architecture-codebase-20261102-223000\\codebase-architecture.html",
+    "sha256": "1ab3ced6098fad75e39c134501c19738b9e44b088859899d638999a4857211ef",
+    "bytes": 852184
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\architecture-codebase-20261102-223000\\codebase-architecture.finalize.json",
+    "summaryReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\architecture-codebase-20261102-223000\\codebase-architecture.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\architecture-codebase-20261102-223000\\codebase-architecture.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-02T17:00:46.292Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 15857,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "routesOverSuggestedBends": 3
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [],
+      "detours": [
+        {
+          "relationship": {
+            "id": "frontend-to-backend",
+            "from": "vercel_edge",
+            "to": "render_backend",
+            "label": "REST + Socket.IO",
+            "collectionIndex": 4,
+            "artifactIndex": 5
+          },
+          "bends": 3,
+          "stretch": 1.296
+        },
+        {
+          "relationship": {
+            "id": "backend-to-push",
+            "from": "render_backend",
+            "to": "webpush",
+            "label": "VAPID push",
+            "collectionIndex": 7,
+            "artifactIndex": 8
+          },
+          "bends": 3,
+          "stretch": 1
+        },
+        {
+          "relationship": {
+            "id": "backend-to-media",
+            "from": "render_backend",
+            "to": "cloudinary",
+            "label": "upload media",
+            "collectionIndex": 8,
+            "artifactIndex": 9
+          },
+          "bends": 3,
+          "stretch": 1
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "vercel_edge → render_backend needs 3 bends: move node vercel_edge or render_backend so they share a row or column with matching centers, or sit diagonally with a clear corner.",
+      "render_backend → webpush needs 3 bends: move node render_backend or webpush so they share a row or column with matching centers, or sit diagonally with a clear corner.",
+      "render_backend → cloudinary needs 3 bends: move node render_backend or cloudinary so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

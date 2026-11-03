@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "EchoChat Codebase Architecture",
+    "locale": "en",
+    "output": ".archify/architecture-codebase-20261102-223000/codebase-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Soumyaroy428/EchoChat.git",
+      "revision": "9aa2080de3bb71802f3352f05d4cc627cae0bdf7"
+    }
+  },
+  "components": [
+    {
+      "id": "users",
+      "type": "external",
+      "label": "Clients / Users",
+      "sublabel": "Next.js Web / PWA",
+      "pos": [40, 240],
+      "size": [130, 60]
+    },
+    {
+      "id": "vercel_edge",
+      "type": "frontend",
+      "label": "Vercel Frontend",
+      "sublabel": "Next.js 14 App Router",
+      "pos": [240, 240],
+      "size": [140, 60],
+      "sources": [
+        {
+          "path": "client/app/page.tsx",
+          "line": 1,
+          "end_line": 28
+        }
+      ]
+    },
+    {
+      "id": "vercel_api",
+      "type": "security",
+      "label": "Vercel API Route",
+      "sublabel": "/api/auth/sendOtp",
+      "tag": "port 465 bypass",
+      "pos": [240, 100],
+      "size": [140, 60],
+      "sources": [
+        {
+          "path": "client/app/api/auth/sendOtp/route.ts",
+          "line": 43,
+          "end_line": 140
+        }
+      ]
+    },
+    {
+      "id": "gmail_smtp",
+      "type": "external",
+      "label": "Gmail SMTP",
+      "sublabel": "Port 465 SSL App Password",
+      "pos": [500, 100],
+      "size": [150, 60]
+    },
+    {
+      "id": "render_backend",
+      "type": "backend",
+      "label": "Render Backend",
+      "sublabel": "Node / Express / Socket.IO",
+      "pos": [500, 240],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "server/src/app.ts",
+          "line": 23,
+          "end_line": 95
+        }
+      ]
+    },
+    {
+      "id": "auth_service",
+      "type": "security",
+      "label": "Auth Controller",
+      "sublabel": "JWT + MongoDB OTP",
+      "pos": [500, 380],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "server/src/controllers/authController.ts",
+          "line": 35,
+          "end_line": 145
+        }
+      ]
+    },
+    {
+      "id": "webpush",
+      "type": "messagebus",
+      "label": "Web Push VAPID",
+      "sublabel": "Push Notification Hub",
+      "pos": [760, 100],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "server/src/utils/push.ts",
+          "line": 1,
+          "end_line": 30
+        }
+      ]
+    },
+    {
+      "id": "mongo_db",
+      "type": "database",
+      "label": "MongoDB Atlas",
+      "sublabel": "Users, Chats, OTPs, Groups",
+      "pos": [760, 240],
+      "size": [160, 60],
+      "sources": [
+        {
+          "path": "server/src/models/User.ts",
+          "line": 26,
+          "end_line": 90
+        }
+      ]
+    },
+    {
+      "id": "cloudinary",
+      "type": "cloud",
+      "label": "Cloudinary Storage",
+      "sublabel": "Media & Chat Attachments",
+      "pos": [760, 380],
+      "size": [160, 60],
+      "sources": [
+        {
+          "path": "server/src/controllers/mediaController.ts",
+          "line": 1,
+          "end_line": 33
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Vercel Platform (Edge & Serverless)",
+      "wraps": ["vercel_edge", "vercel_api"]
+    },
+    {
+      "kind": "region",
+      "label": "Render Managed Service (Container)",
+      "wraps": ["render_backend", "auth_service"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Cloud Infrastructure & Persistence",
+      "wraps": ["mongo_db", "cloudinary"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "users-to-frontend",
+      "from": "users",
+      "to": "vercel_edge",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "frontend-to-serverless",
+      "from": "vercel_edge",
+      "to": "vercel_api",
+      "label": "dispatch OTP",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "serverless-to-smtp",
+      "from": "vercel_api",
+      "to": "gmail_smtp",
+      "label": "SMTP :465",
+      "variant": "security"
+    },
+    {
+      "id": "serverless-to-backend",
+      "from": "vercel_api",
+      "to": "render_backend",
+      "label": "generate code",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "frontend-to-backend",
+      "from": "vercel_edge",
+      "to": "render_backend",
+      "label": "REST + Socket.IO",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "backend-to-auth",
+      "from": "render_backend",
+      "to": "auth_service",
+      "label": "verify auth",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "backend-to-db",
+      "from": "render_backend",
+      "to": "mongo_db",
+      "label": "Mongoose CRUD",
+      "variant": "emphasis"
+    },
+    {
+      "id": "backend-to-push",
+      "from": "render_backend",
+      "to": "webpush",
+      "label": "VAPID push",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "backend-to-media",
+      "from": "render_backend",
+      "to": "cloudinary",
+      "label": "upload media",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Frontend & Edge Tier",
+      "items": [
+        "Vercel serves Next.js 14 client SPA and PWA service worker",
+        "Serverless route /api/auth/sendOtp dispatches emails over open Port 465"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Real-Time Backend Tier",
+      "items": [
+        "Render hosts persistent Express & Socket.IO server for instant messaging",
+        "Authenticated sessions use 7-day JWT tokens and Web Push notifications"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Security & Storage Tier",
+      "items": [
+        "MongoDB Atlas stores users, hashed passwords, 5-minute OTPs, and chat history",
+        "Cloudinary CDN securely hosts avatars and media attachments"
+      ]
+    }
+  ]
+}

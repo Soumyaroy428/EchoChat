@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "1d524c35-7c3e-4747-939b-281f8fbff995",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\architecture-codebase-20261102-223000\\candidate.json",
+  "output": "C:\\Users\\soumy\\OneDrive\\Desktop\\EchoChat\\.archify\\architecture-codebase-20261102-223000\\codebase-architecture.html",
+  "specification": {
+    "sha256": "70833d04f15da9617a35a0999af9bc5386569f526c3d359045dc2aa49bbc998e",
+    "bytes": 6179
+  },
+  "artifact": {
+    "sha256": "91ddc51fa6132679c3bfee71a0710dae781d0683d5b32d574d1e976a0ebc35fc",
+    "bytes": 851928
+  }
+}
