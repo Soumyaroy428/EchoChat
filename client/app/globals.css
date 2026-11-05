@@ -127,20 +127,36 @@
   html {
     @apply font-sans;
   }
+  
+  :focus-visible {
+    outline: 2px solid #5e6ad2;
+    outline-offset: 2px;
+  }
 }
 
 /* ==============================
-   ECHOCHAT - CHAT PANEL & WALLPAPER (MODERN GLASSMORPHISM)
+   LINEAR DESIGN SYSTEM TOKENS (DESIGN.md)
    ============================== */
 
 :root {
+  --bg-canvas: #08090a;
+  --bg-surface: #101114;
+  --bg-surface-raised: #16181d;
+  --bg-surface-sunken: #0c0d0e;
+  --border-subtle: #1f2228;
+  --border-strong: #2e323b;
+  --brand-primary: #5e6ad2;
+  --brand-hover: #6875e8;
+  --brand-active: #4f59b8;
+  --text-primary: #f7f8f8;
+  --text-secondary: #8a8f98;
+  --text-muted: #62666d;
+
   --bg-main: #0F172A;
   --bg-sidebar: #0B1222;
   --bg-panel: #1E293B;
   --bg-card: #162032;
   --border-echo: rgba(148, 163, 184, 0.12);
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
   --accent-green: #10B981;
   --accent-cyan: #06B6D4;
 }

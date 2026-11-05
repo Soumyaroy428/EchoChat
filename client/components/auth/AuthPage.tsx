@@ -96,48 +96,51 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#05080d] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#08090a] flex items-center justify-center p-4 selection:bg-[#5e6ad2]/30 selection:text-white">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <img src="/logo.svg" alt="EchoChat Logo" className="w-48 h-14 mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">
-            {isLogin ? "Welcome back! Login to continue" : "Create your EchoChat account"}
+        {/* Logo & Headline */}
+        <div className="text-center mb-6">
+          <div className="w-9 h-9 rounded-[6px] bg-gradient-to-br from-[#5e6ad2] to-[#717cf0] flex items-center justify-center shadow-[0_0_16px_rgba(94,106,210,0.35)] mx-auto mb-3">
+            <Lock size={18} className="text-white" />
+          </div>
+          <h1 className="text-lg font-semibold tracking-tight text-[#f7f8f8]">EchoChat Account</h1>
+          <p className="text-[#8a8f98] text-xs mt-1">
+            {isLogin ? "Sign in to access your encrypted conversations" : "Create a developer-first messaging account"}
           </p>
         </div>
 
-        {/* Form */}
-        <div className="bg-[#0b1420] rounded-2xl p-8 border border-[#1b2b3d] shadow-xl">
-          <h2 className="text-2xl font-semibold text-white mb-6">
+        {/* Linear Card */}
+        <div className="bg-[#101114] rounded-[8px] p-6 sm:p-8 border border-[#1f2228] shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+          <h2 className="text-lg font-semibold text-[#f7f8f8] mb-5 tracking-tight">
             {isLogin ? "Sign In" : "Register"}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-xs font-medium text-[#8a8f98] mb-1.5">
                   Full Name (Optional)
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <User className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-[#62666d]" size={16} />
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="e.g. Alex Morgan"
-                    className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
+                    className="w-full bg-[#0c0d0e] border border-[#1f2228] rounded-[6px] py-2.5 pl-10 pr-4 text-sm text-[#f7f8f8] placeholder-[#62666d] focus:outline-none focus:border-[#5e6ad2] focus:ring-1 focus:ring-[#5e6ad2] transition-colors"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-xs font-medium text-[#8a8f98] mb-1.5">
                 Email Address *
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-[#62666d]" size={16} />
                 <input
                   type="email"
                   name="email"
@@ -145,36 +148,36 @@ export default function AuthPage() {
                   onChange={handleChange}
                   placeholder="name@example.com"
                   required
-                  className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
+                  className="w-full bg-[#0c0d0e] border border-[#1f2228] rounded-[6px] py-2.5 pl-10 pr-4 text-sm text-[#f7f8f8] placeholder-[#62666d] focus:outline-none focus:border-[#5e6ad2] focus:ring-1 focus:ring-[#5e6ad2] transition-colors"
                 />
               </div>
             </div>
 
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-xs font-medium text-[#8a8f98] mb-1.5">
                   Mobile Number (Optional)
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <Phone className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-[#62666d]" size={16} />
                   <input
                     type="tel"
                     name="mobile"
                     value={formData.mobile}
                     onChange={handleChange}
                     placeholder="+1234567890 (optional)"
-                    className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
+                    className="w-full bg-[#0c0d0e] border border-[#1f2228] rounded-[6px] py-2.5 pl-10 pr-4 text-sm text-[#f7f8f8] placeholder-[#62666d] focus:outline-none focus:border-[#5e6ad2] focus:ring-1 focus:ring-[#5e6ad2] transition-colors"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-xs font-medium text-[#8a8f98] mb-1.5">
                 Password *
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-[#62666d]" size={16} />
                 <input
                   type="password"
                   name="password"
@@ -183,7 +186,7 @@ export default function AuthPage() {
                   placeholder="Min 6 characters"
                   required
                   minLength={6}
-                  className="w-full bg-[#05090f] border border-[#1c2e42] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 placeholder-gray-500"
+                  className="w-full bg-[#0c0d0e] border border-[#1f2228] rounded-[6px] py-2.5 pl-10 pr-4 text-sm text-[#f7f8f8] placeholder-[#62666d] focus:outline-none focus:border-[#5e6ad2] focus:ring-1 focus:ring-[#5e6ad2] transition-colors"
                 />
               </div>
             </div>
@@ -191,36 +194,36 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 mt-2"
+              className="w-full bg-[#5e6ad2] hover:bg-[#6875e8] active:bg-[#4f59b8] disabled:opacity-50 text-[#f7f8f8] py-2.5 rounded-[6px] text-sm font-medium transition-all shadow-[0_1px_2px_rgba(0,0,0,0.4),0_0_12px_rgba(94,106,210,0.25)] flex items-center justify-center gap-2 mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08090a]"
             >
               {loading ? (
                 "Processing..."
               ) : (
                 <>
-                  {isLogin ? "Sign In" : "Create Account"}
-                  <ArrowRight size={18} />
+                  <span>{isLogin ? "Sign In" : "Create Account"}</span>
+                  <ArrowRight size={15} />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-5 pt-4 border-t border-[#1f2228] text-center">
             <button
               onClick={() => {
                 setIsLogin(!isLogin);
                 setError("");
               }}
-              className="text-gray-400 hover:text-white text-sm transition-colors flex items-center justify-center gap-2 mx-auto"
+              className="text-xs text-[#8a8f98] hover:text-[#f7f8f8] transition-colors flex items-center justify-center gap-1.5 mx-auto focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5e6ad2] rounded"
             >
               {isLogin ? (
                 <>
-                  <ArrowLeft size={16} />
-                  Don't have an account? Register
+                  <span>Don't have an account?</span>
+                  <span className="text-[#5e6ad2] hover:underline font-medium">Register</span>
                 </>
               ) : (
                 <>
-                  <ArrowLeft size={16} />
-                  Already have an account? Sign In
+                  <span>Already have an account?</span>
+                  <span className="text-[#5e6ad2] hover:underline font-medium">Sign In</span>
                 </>
               )}
             </button>
