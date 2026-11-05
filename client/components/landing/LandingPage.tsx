@@ -1,17 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  ArrowRight, 
-  ShieldCheck, 
-  Zap, 
-  Lock, 
-  Terminal, 
-  CheckCircle2, 
-  Radio, 
-  Layers, 
-  Sparkles 
-} from "lucide-react";
+import { ArrowRight, Lock, CheckCircle2, ShieldCheck, Smartphone, Laptop, Sparkles } from "lucide-react";
 import AuthPage from "../auth/AuthPage";
 
 export default function LandingPage() {
@@ -33,226 +23,176 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
-      {/* Precision Linear Top Navigation Rail */}
-      <header className="h-14 border-b border-[#1f2228] bg-[#08090a]/80 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-6">
+    <div 
+      className="min-h-screen bg-[#0c1317] text-[#e9edef] flex flex-col relative selection:bg-[#00a884]/30 selection:text-white"
+      style={{
+        backgroundImage: "linear-gradient(rgba(12, 19, 23, 0.82), rgba(12, 19, 23, 0.90)), url('/chat-bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed"
+      }}
+    >
+      {/* WhatsApp Web Brand Top Header Bar */}
+      <header className="h-20 bg-[#111b21]/90 backdrop-blur-md border-b border-white/10 px-6 sm:px-12 flex items-center justify-between z-30 sticky top-0 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-[6px] bg-gradient-to-br from-[#5e6ad2] to-[#717cf0] flex items-center justify-center shadow-[0_0_12px_rgba(94,106,210,0.35)]">
-            <Radio size={14} className="text-white" />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm tracking-tight text-[#f7f8f8]">EchoChat</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[4px] bg-[#16181d] border border-[#1f2228] text-[#8a8f98]">
-              v2.5
-            </span>
-          </div>
-        </div>
-
-        {/* Center Technical Links */}
-        <nav className="hidden md:flex items-center gap-6 text-xs text-[#8a8f98] font-medium" aria-label="Product Navigation">
-          <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-[4px] bg-[#101114] border border-[#1f2228] text-[#8a8f98]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#30a46c] animate-pulse" />
-            <span>Systems Online</span>
+          {/* Official EchoChat Logo */}
+          <img
+            src="/logo-main.svg"
+            alt="EchoChat Logo"
+            className="h-10 sm:h-12 w-auto object-contain cursor-pointer"
+            onClick={() => setShowAuth(false)}
+          />
+          <span className="hidden sm:inline-block text-[11px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-[#00a884]/15 text-[#00a884] border border-[#00a884]/30">
+            Web Client
           </span>
-          <a href="#features" className="hover:text-[#f7f8f8] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5e6ad2] rounded">Architecture</a>
-          <a href="#encryption" className="hover:text-[#f7f8f8] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5e6ad2] rounded">E2EE Security</a>
-          <a href="#telemetry" className="hover:text-[#f7f8f8] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5e6ad2] rounded">Telemetry</a>
-        </nav>
+        </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-3">
           <button
             onClick={handleLoginClick}
-            className="px-3.5 py-1.5 rounded-[6px] text-xs font-medium text-[#8a8f98] hover:text-[#f7f8f8] hover:bg-[#16181d] border border-transparent hover:border-[#1f2228] transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08090a]"
-            aria-label="Sign in to your account"
+            className="px-5 py-2 rounded-lg text-sm font-medium text-[#e9edef] hover:bg-white/10 border border-white/15 transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]"
+            aria-label="Login to EchoChat"
           >
-            Sign In
+            Login
           </button>
           <button
             onClick={handleGetStartClick}
-            className="px-3.5 py-1.5 rounded-[6px] text-xs font-medium text-[#f7f8f8] bg-[#5e6ad2] hover:bg-[#6875e8] active:bg-[#4f59b8] shadow-[0_1px_2px_rgba(0,0,0,0.4),0_0_12px_rgba(94,106,210,0.25)] transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08090a] flex items-center gap-1.5"
-            aria-label="Get started with EchoChat"
+            className="px-5 py-2 rounded-lg text-sm font-medium text-white bg-[#00a884] hover:bg-[#02906f] active:bg-[#017a5e] shadow-[0_2px_12px_rgba(0,168,132,0.35)] transition-all duration-150 active:scale-[0.98] flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]"
+            aria-label="Get Started with EchoChat"
           >
-            <span>Launch App</span>
-            <ArrowRight size={13} />
+            <span>Get Started</span>
+            <ArrowRight size={16} />
           </button>
         </div>
       </header>
 
-      {/* Main Asymmetric Operational Dashboard View */}
-      <main className="flex-1 flex flex-col justify-center px-6 lg:px-12 py-10 max-w-7xl mx-auto w-full">
-        {/* Asymmetric 58/42 Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      {/* Main WhatsApp-Style Central Experience */}
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-8 lg:p-12 z-20">
+        <div className="w-full max-w-5xl bg-[#111b21]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden">
           
-          {/* Left Column (58% / 7 cols) - Content, strict 2-line headline, direct triggers */}
-          <div className="lg:col-span-7 flex flex-col gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 p-6 sm:p-10 lg:p-12 items-center">
             
-            {/* Precision Linear Badge */}
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-[6px] bg-[#101114] border border-[#1f2228] w-fit shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#5e6ad2] animate-ping" />
-              <span className="text-[11px] font-mono tracking-wide text-[#8a8f98]">
-                LINEAR SYSTEM v2.5 // SECURE WEBSOCKET CLUSTER
-              </span>
-            </div>
-
-            {/* Strict 2-Line Headline (Taste Skill House Rule) */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-[-0.035em] text-[#f7f8f8] leading-[1.12]">
-              The real-time messaging engine built for high-velocity teams.
-            </h1>
-
-            {/* Editorial Secondary Description */}
-            <p className="text-sm sm:text-base text-[#8a8f98] leading-relaxed max-w-xl">
-              Zero-latency peer sync, local private key custody with Curve25519 encryption, and an obsidian interface crafted with precision dark tokens.
-            </p>
-
-            {/* Impeccable Action Buttons with Polish */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
-                onClick={handleGetStartClick}
-                className="px-5 py-2.5 rounded-[6px] bg-[#5e6ad2] hover:bg-[#6875e8] active:bg-[#4f59b8] text-[#f7f8f8] text-sm font-medium shadow-[0_1px_2px_rgba(0,0,0,0.4),0_0_16px_rgba(94,106,210,0.3)] transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08090a] flex items-center gap-2"
-                aria-label="Get Started"
-              >
-                <span>Get Started</span>
-                <ArrowRight size={15} />
-              </button>
-
-              <button
-                onClick={handleLoginClick}
-                className="px-5 py-2.5 rounded-[6px] bg-[#101114] hover:bg-[#16181d] border border-[#1f2228] hover:border-[#2e323b] text-[#f7f8f8] text-sm font-medium transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08090a]"
-                aria-label="Sign In"
-              >
-                Sign In
-              </button>
-            </div>
-
-            {/* Telemetry Metrics Bar (Asymmetric Data Strip) */}
-            <div className="pt-6 border-t border-[#1f2228] grid grid-cols-3 gap-4 text-left">
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-mono text-[#62666d] tracking-wider uppercase">Cipher Protocol</span>
-                <span className="text-xs font-semibold text-[#f7f8f8] flex items-center gap-1.5">
-                  <Lock size={12} className="text-[#5e6ad2]" />
-                  AES-256-GCM
+            {/* Left Column: WhatsApp-Style Steps & Instructions */}
+            <div className="lg:col-span-7 flex flex-col gap-6">
+              <div>
+                <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#00a884] uppercase tracking-wider mb-2">
+                  <Sparkles size={14} />
+                  Simple • Private • Realtime
                 </span>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-mono text-[#62666d] tracking-wider uppercase">Sync Latency</span>
-                <span className="text-xs font-semibold text-[#f7f8f8] flex items-center gap-1.5">
-                  <Zap size={12} className="text-[#30a46c]" />
-                  &lt; 24ms Realtime
-                </span>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-mono text-[#62666d] tracking-wider uppercase">Transport Layer</span>
-                <span className="text-xs font-semibold text-[#f7f8f8] flex items-center gap-1.5">
-                  <Radio size={12} className="text-[#5e6ad2]" />
-                  Secure WebSocket
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column (42% / 5 cols) - Linear Asymmetric Bento Workspace Card */}
-          <div className="lg:col-span-5">
-            <div className="relative rounded-[8px] bg-[#101114] border border-[#1f2228] hover:border-[#2e323b] shadow-[0_20px_50px_rgba(0,0,0,0.6)] transition-all duration-200 overflow-hidden">
-              
-              {/* Window Header */}
-              <div className="h-9 px-3.5 bg-[#0c0d0e] border-b border-[#1f2228] flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#27282b]" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#27282b]" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#27282b]" />
-                </div>
-                <div className="text-[11px] font-mono text-[#62666d] flex items-center gap-1.5">
-                  <Terminal size={11} />
-                  <span>echochat://channel/core</span>
-                </div>
-                <span className="w-2 h-2 rounded-full bg-[#30a46c]" title="Socket Live" />
+                <h1 className="text-3xl sm:text-4xl font-bold text-[#e9edef] tracking-tight leading-snug">
+                  Use EchoChat on your computer
+                </h1>
+                <p className="text-sm sm:text-base text-[#8696a0] mt-2 leading-relaxed">
+                  Connect with friends and family seamlessly. Fast messaging with local end-to-end encryption.
+                </p>
               </div>
 
-              {/* Chat Thread Mockup */}
-              <div className="p-5 flex flex-col gap-3.5 bg-[#101114]">
-                {/* Active Channel Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-[#1f2228]">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-[6px] bg-[#16181d] border border-[#1f2228] flex items-center justify-center text-xs font-semibold text-[#5e6ad2]">
-                      EC
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-[#f7f8f8]">EchoChat Engineering</div>
-                      <div className="text-[10px] text-[#8a8f98]">14 active peers • E2EE Encrypted</div>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[4px] bg-[#30a46c]/10 text-[#30a46c] border border-[#30a46c]/20">
-                    Live
+              {/* Numbered Steps */}
+              <ol className="space-y-4 text-sm text-[#d1d7db]">
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#202c33] border border-white/10 text-[#00a884] font-semibold text-xs flex items-center justify-center mt-0.5">
+                    1
                   </span>
-                </div>
+                  <span>
+                    Open <strong className="text-white">EchoChat</strong> on your browser or device.
+                  </span>
+                </li>
 
-                {/* Received Bubble */}
-                <div className="flex flex-col gap-1 items-start max-w-[85%]">
-                  <div className="text-[10px] text-[#8a8f98] font-mono">alex.dev // 22:42</div>
-                  <div className="px-3.5 py-2.5 rounded-[6px] bg-[#16181d] border border-[#1f2228] text-xs text-[#f7f8f8] leading-relaxed">
-                    Deployed hotfix to production cluster. Socket channel ACKed in 18ms.
-                  </div>
-                </div>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#202c33] border border-white/10 text-[#00a884] font-semibold text-xs flex items-center justify-center mt-0.5">
+                    2
+                  </span>
+                  <span>
+                    Enter your email to receive an instant <strong className="text-white">One-Time Password (OTP)</strong>.
+                  </span>
+                </li>
 
-                {/* Sent Bubble */}
-                <div className="flex flex-col gap-1 items-end max-w-[85%] self-end">
-                  <div className="text-[10px] text-[#8a8f98] font-mono">you // 22:43</div>
-                  <div className="px-3.5 py-2.5 rounded-[6px] bg-[#5e6ad2] text-xs text-[#f7f8f8] leading-relaxed shadow-[0_2px_8px_rgba(94,106,210,0.25)]">
-                    Verified live. Linear design tokens and accessibility snapshots passing.
-                  </div>
-                </div>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#202c33] border border-white/10 text-[#00a884] font-semibold text-xs flex items-center justify-center mt-0.5">
+                    3
+                  </span>
+                  <span>
+                    Start private, encrypted conversations with real-time socket delivery.
+                  </span>
+                </li>
+              </ol>
 
-                {/* Interactive Simulated Input Dock */}
-                <div className="mt-2 pt-3 border-t border-[#1f2228] flex items-center justify-between gap-2">
-                  <div className="flex-1 bg-[#0c0d0e] border border-[#1f2228] rounded-[6px] px-3 py-1.5 text-xs text-[#62666d] flex items-center justify-between">
-                    <span>Message #engineering...</span>
-                    <span className="font-mono text-[10px] bg-[#16181d] px-1 py-0.5 rounded text-[#8a8f98]">⌘K</span>
-                  </div>
-                  <button 
-                    onClick={handleGetStartClick}
-                    className="p-2 rounded-[6px] bg-[#5e6ad2] hover:bg-[#6875e8] text-white transition-all duration-150 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5e6ad2]"
-                    aria-label="Send message in preview"
-                  >
-                    <ArrowRight size={13} />
-                  </button>
-                </div>
+              {/* CTA Action Buttons */}
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <button
+                  onClick={handleGetStartClick}
+                  className="px-7 py-3 rounded-lg text-base font-semibold text-white bg-[#00a884] hover:bg-[#02906f] active:bg-[#017a5e] shadow-[0_4px_16px_rgba(0,168,132,0.4)] transition-all duration-150 active:scale-[0.98] flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]"
+                >
+                  <span>Get Started</span>
+                  <ArrowRight size={18} />
+                </button>
 
+                <button
+                  onClick={handleLoginClick}
+                  className="px-7 py-3 rounded-lg text-base font-medium text-[#e9edef] bg-[#202c33] hover:bg-[#2a3942] border border-white/10 transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00a884]"
+                >
+                  Login to Account
+                </button>
               </div>
 
-              {/* Bento Lower Metric Callout */}
-              <div className="px-5 py-3 bg-[#0c0d0e] border-t border-[#1f2228] flex items-center justify-between text-[11px] text-[#8a8f98]">
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck size={13} className="text-[#5e6ad2]" />
-                  <span>Hardware Key Storage</span>
-                </span>
-                <span className="font-mono text-[#62666d]">Curve25519-SHA512</span>
+              {/* Security Banner */}
+              <div className="pt-4 border-t border-white/10 flex items-center gap-2 text-xs text-[#8696a0]">
+                <ShieldCheck size={16} className="text-[#00a884] flex-shrink-0" />
+                <span>End-to-end encrypted. Your personal messages and calls are secured.</span>
               </div>
-
             </div>
+
+            {/* Right Column: WhatsApp Phone Showcase Illustration */}
+            <div className="lg:col-span-5 flex flex-col items-center justify-center">
+              <div className="relative w-full max-w-[360px] aspect-square rounded-2xl bg-[#0c1317]/80 border border-white/10 flex items-center justify-center p-6 shadow-inner overflow-hidden group">
+                
+                {/* Subtle Glow Behind Image */}
+                <div className="absolute inset-0 bg-radial-gradient from-[#00a884]/10 via-transparent to-transparent pointer-events-none" />
+
+                {/* The WhatsApp-style illustration */}
+                <img
+                  src="/landing-page.svg"
+                  alt="EchoChat WhatsApp Interface"
+                  className="w-full h-full object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)] transform group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+
+              <div className="mt-4 flex items-center gap-3 text-xs text-[#8696a0]">
+                <span className="flex items-center gap-1.5">
+                  <Laptop size={14} className="text-[#00a884]" />
+                  <span>Desktop & Web</span>
+                </span>
+                <span>•</span>
+                <span className="flex items-center gap-1.5">
+                  <Smartphone size={14} className="text-[#00a884]" />
+                  <span>Mobile Compatible</span>
+                </span>
+              </div>
+            </div>
+
           </div>
 
         </div>
       </main>
 
-      {/* Linear Precision Footer */}
-      <footer className="border-t border-[#1f2228] bg-[#08090a] py-6 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#8a8f98]">
+      {/* WhatsApp-Style Clean Footer */}
+      <footer className="p-6 border-t border-white/10 bg-[#111b21]/90 backdrop-blur-md z-20 text-center text-xs text-[#8696a0]">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#30a46c]" />
-            <span className="font-medium text-[#f7f8f8]">EchoChat Systems Operational</span>
-            <span className="text-[#62666d]">•</span>
-            <span>Linear Design Specification</span>
+            <Lock size={13} className="text-[#00a884]" />
+            <span>End-to-end encrypted. &copy; 2026 EchoChat. All rights reserved.</span>
           </div>
 
           <div className="flex items-center gap-6">
-            <button onClick={handleLoginClick} className="hover:text-[#f7f8f8] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5e6ad2] rounded">
-              Sign In
+            <button onClick={handleLoginClick} className="hover:text-white transition-colors">
+              Login
             </button>
-            <button onClick={handleGetStartClick} className="hover:text-[#f7f8f8] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5e6ad2] rounded">
-              Register
+            <button onClick={handleGetStartClick} className="hover:text-white transition-colors">
+              Get Started
             </button>
-            <a href="https://github.com/Soumyaroy428/EchoChat" target="_blank" rel="noopener noreferrer" className="hover:text-[#f7f8f8] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5e6ad2] rounded">
+            <a href="https://github.com/Soumyaroy428/EchoChat" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
               GitHub
             </a>
           </div>
