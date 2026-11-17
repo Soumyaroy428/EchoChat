@@ -89,7 +89,7 @@ export default function LandingPage() {
   const [isUserTypingSim, setIsUserTypingSim] = useState(false);
   const [isSendPulsing, setIsSendPulsing] = useState(false);
   const [audioSeconds, setAudioSeconds] = useState(14);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const [demoMessages, setDemoMessages] = useState<DemoMessage[]>([
     {
@@ -123,9 +123,14 @@ export default function LandingPage() {
     },
   ]);
 
-  // Keep message scroll pinned to latest bubble
+  // Keep internal chat container scroll pinned to bottom without scrolling browser window
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
   }, [demoMessages, isTypingPeer]);
 
   // Autonomous Stageshow Typing & Messaging Simulation Loop
@@ -700,6 +705,7 @@ export default function LandingPage() {
 
                   {/* Message Stream */}
                   <div 
+                    ref={chatContainerRef}
                     className="p-4 space-y-3 min-h-[220px] max-h-[280px] overflow-y-auto"
                     style={{
                       backgroundImage: "radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px)",
@@ -780,7 +786,6 @@ export default function LandingPage() {
                         </div>
                       </div>
                     )}
-                    <div ref={messagesEndRef} />
                   </div>
 
                   {/* Chat Input Dock */}
