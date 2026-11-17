@@ -93,7 +93,7 @@ export default function MainPage() {
   const [contactToCall, setContactToCall] = useState<Contact | null>(null);
   const [isVideoCall, setIsVideoCall] = useState(false);
 
-  const token = localStorage.getItem("token");
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
     if (!token) {
