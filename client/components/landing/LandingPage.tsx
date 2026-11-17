@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   ArrowRight, 
   Lock, 
@@ -85,6 +85,12 @@ export default function LandingPage() {
   const [isTypingPeer, setIsTypingPeer] = useState(false);
   const [simulatedCallActive, setSimulatedCallActive] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
+  const [isChatAutoPlaying, setIsChatAutoPlaying] = useState(true);
+  const [isUserTypingSim, setIsUserTypingSim] = useState(false);
+  const [isSendPulsing, setIsSendPulsing] = useState(false);
+  const [audioSeconds, setAudioSeconds] = useState(14);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const [demoMessages, setDemoMessages] = useState<DemoMessage[]>([
     {
       id: "1",
@@ -117,6 +123,187 @@ export default function LandingPage() {
     },
   ]);
 
+  // Keep message scroll pinned to latest bubble
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [demoMessages, isTypingPeer]);
+
+  // Autonomous Stageshow Typing & Messaging Simulation Loop
+  useEffect(() => {
+    if (!isChatAutoPlaying) return;
+
+    let isCancelled = false;
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => {
+        timeoutId = setTimeout(() => resolve(), ms);
+      });
+
+    const typeText = async (text: string) => {
+      setIsUserTypingSim(true);
+      setInputMessage("");
+      for (let i = 0; i < text.length; i++) {
+        if (isCancelled) return false;
+        setInputMessage(text.slice(0, i + 1));
+        await wait(30 + Math.floor(Math.random() * 25));
+      }
+      if (isCancelled) return false;
+      await wait(300);
+      return true;
+    };
+
+    const runSimulationLoop = async () => {
+      while (!isCancelled) {
+        // Phase 1: Reset conversation to initial state
+        setDemoMessages([
+          {
+            id: "m1",
+            sender: "peer",
+            text: "Hey Alex! Did you verify the new Curve25519 E2EE key exchange?",
+            time: "10:14 PM",
+            status: "read",
+          },
+        ]);
+        setInputMessage("");
+        setIsTypingPeer(false);
+        setIsPlayingAudio(false);
+        setAudioSeconds(14);
+        setIsUserTypingSim(false);
+
+        if (isCancelled) break;
+        await wait(1200);
+
+        // Phase 2: User types first response
+        const typed1 = await typeText("Yes, verified! Sub-24ms dispatch over WebSockets with zero plain-text leaks ⚡");
+        if (!typed1 || isCancelled) break;
+
+        // Phase 3: Pulse send button & pop message into thread with Sent status
+        setIsSendPulsing(true);
+        await wait(160);
+        setIsSendPulsing(false);
+        setInputMessage("");
+        setIsUserTypingSim(false);
+
+        const msg2Id = "m2";
+        setDemoMessages((prev) => [
+          ...prev,
+          {
+            id: msg2Id,
+            sender: "me",
+            text: "Yes, verified! Sub-24ms dispatch over WebSockets with zero plain-text leaks ⚡",
+            time: "10:15 PM",
+            status: "sent",
+          },
+        ]);
+
+        if (isCancelled) break;
+        await wait(600);
+
+        // Delivered receipt
+        setDemoMessages((prev) =>
+          prev.map((m) => (m.id === msg2Id ? { ...m, status: "delivered" } : m))
+        );
+
+        if (isCancelled) break;
+        await wait(600);
+
+        // Read receipt
+        setDemoMessages((prev) =>
+          prev.map((m) => (m.id === msg2Id ? { ...m, status: "read" } : m))
+        );
+
+        if (isCancelled) break;
+        await wait(800);
+
+        // Phase 4: Sarah starts typing (peer status in header + 3-dot bubble)
+        setIsTypingPeer(true);
+        if (isCancelled) break;
+        await wait(2200);
+        setIsTypingPeer(false);
+
+        // Phase 5: Sarah's Opus voice note appears
+        const msg3Id = "m3";
+        setDemoMessages((prev) => [
+          ...prev,
+          {
+            id: msg3Id,
+            sender: "peer",
+            text: "Voice note regarding deployment architecture audio note",
+            time: "10:16 PM",
+            status: "read",
+            isVoice: true,
+          },
+        ]);
+
+        if (isCancelled) break;
+        await wait(800);
+
+        // Phase 6: Voice note automatically plays with animated equalizer & timer
+        setIsPlayingAudio(true);
+        for (let s = 14; s <= 20; s++) {
+          if (isCancelled) break;
+          setAudioSeconds(s);
+          await wait(600);
+        }
+        setIsPlayingAudio(false);
+
+        if (isCancelled) break;
+        await wait(900);
+
+        // Phase 7: User types second message
+        const typed2 = await typeText("All 8 ERD MongoDB models and TTL indices are passing 100%. Ready for screenshot! 🚀");
+        if (!typed2 || isCancelled) break;
+
+        // Pulse send button
+        setIsSendPulsing(true);
+        await wait(160);
+        setIsSendPulsing(false);
+        setInputMessage("");
+        setIsUserTypingSim(false);
+
+        const msg4Id = "m4";
+        setDemoMessages((prev) => [
+          ...prev,
+          {
+            id: msg4Id,
+            sender: "me",
+            text: "All 8 ERD MongoDB models and TTL indices are passing 100%. Ready for screenshot! 🚀",
+            time: "10:17 PM",
+            status: "sent",
+          },
+        ]);
+
+        if (isCancelled) break;
+        await wait(600);
+
+        // Delivered
+        setDemoMessages((prev) =>
+          prev.map((m) => (m.id === msg4Id ? { ...m, status: "delivered" } : m))
+        );
+
+        if (isCancelled) break;
+        await wait(600);
+
+        // Read
+        setDemoMessages((prev) =>
+          prev.map((m) => (m.id === msg4Id ? { ...m, status: "read" } : m))
+        );
+
+        if (isCancelled) break;
+        // Hold for 7 seconds so the user can comfortably view and take screenshots
+        await wait(7000);
+      }
+    };
+
+    runSimulationLoop();
+
+    return () => {
+      isCancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isChatAutoPlaying]);
+
   // -----------------------------------------------------------
   // Stageshow Component Tile States
   // -----------------------------------------------------------
@@ -134,8 +321,10 @@ export default function LandingPage() {
 
   const handleSendDemoMessage = () => {
     if (!inputMessage.trim()) return;
+    setIsChatAutoPlaying(false);
+    const newMsgId = Date.now().toString();
     const newMsg: DemoMessage = {
-      id: Date.now().toString(),
+      id: newMsgId,
       sender: "me",
       text: inputMessage.trim(),
       time: "Just now",
@@ -147,13 +336,13 @@ export default function LandingPage() {
     // Simulate delivery tick progression: sent -> delivered -> read
     setTimeout(() => {
       setDemoMessages((prev) =>
-        prev.map((m) => (m.id === newMsg.id ? { ...m, status: "delivered" } : m))
+        prev.map((m) => (m.id === newMsgId ? { ...m, status: "delivered" } : m))
       );
-    }, 700);
+    }, 600);
 
     setTimeout(() => {
       setDemoMessages((prev) =>
-        prev.map((m) => (m.id === newMsg.id ? { ...m, status: "read" } : m))
+        prev.map((m) => (m.id === newMsgId ? { ...m, status: "read" } : m))
       );
       // Trigger peer typing response
       setIsTypingPeer(true);
@@ -169,8 +358,8 @@ export default function LandingPage() {
             status: "read",
           },
         ]);
-      }, 1900);
-    }, 1600);
+      }, 1800);
+    }, 1300);
   };
 
   const handleLoginClick = () => {
@@ -394,28 +583,53 @@ export default function LandingPage() {
                     </p>
                   </div>
 
-                  {/* Device Framing Toggle */}
-                  <div className="flex items-center gap-1.5 self-start sm:self-auto bg-[#0b141a] p-1 rounded-xl border border-white/10">
+                  {/* Auto Simulation Toggle & Device Framing */}
+                  <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
                     <button
-                      onClick={() => setDeviceFrame("desktop")}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1.5 ${
-                        deviceFrame === "desktop" ? "bg-[#202c33] text-white shadow-sm" : "text-[#8696a0] hover:text-white"
+                      onClick={() => setIsChatAutoPlaying((prev) => !prev)}
+                      className={`px-2.5 py-1 rounded-xl text-xs font-medium border transition flex items-center gap-1.5 ${
+                        isChatAutoPlaying 
+                          ? "bg-[#00a884]/15 border-[#00a884]/40 text-[#00a884] shadow-sm" 
+                          : "bg-[#202c33] border-white/10 text-[#8696a0] hover:text-white"
                       }`}
-                      title="Desktop view mode"
+                      title={isChatAutoPlaying ? "Pause simulation for screenshots" : "Resume autonomous typing simulation"}
                     >
-                      <Laptop size={13} />
-                      <span className="hidden sm:inline">Desktop Frame</span>
+                      {isChatAutoPlaying ? (
+                        <>
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-ping" />
+                          <Pause size={12} />
+                          <span>Simulation Active</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play size={12} />
+                          <span>Play Simulation</span>
+                        </>
+                      )}
                     </button>
-                    <button
-                      onClick={() => setDeviceFrame("mobile")}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1.5 ${
-                        deviceFrame === "mobile" ? "bg-[#202c33] text-white shadow-sm" : "text-[#8696a0] hover:text-white"
-                      }`}
-                      title="Mobile view mode"
-                    >
-                      <Smartphone size={13} />
-                      <span className="hidden sm:inline">Mobile Frame</span>
-                    </button>
+
+                    <div className="flex items-center gap-1 bg-[#0b141a] p-1 rounded-xl border border-white/10">
+                      <button
+                        onClick={() => setDeviceFrame("desktop")}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1.5 ${
+                          deviceFrame === "desktop" ? "bg-[#202c33] text-white shadow-sm" : "text-[#8696a0] hover:text-white"
+                        }`}
+                        title="Desktop view mode"
+                      >
+                        <Laptop size={13} />
+                        <span className="hidden sm:inline">Desktop Frame</span>
+                      </button>
+                      <button
+                        onClick={() => setDeviceFrame("mobile")}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1.5 ${
+                          deviceFrame === "mobile" ? "bg-[#202c33] text-white shadow-sm" : "text-[#8696a0] hover:text-white"
+                        }`}
+                        title="Mobile view mode"
+                      >
+                        <Smartphone size={13} />
+                        <span className="hidden sm:inline">Mobile Frame</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -435,10 +649,16 @@ export default function LandingPage() {
                       </div>
                       <div className="flex flex-col">
                         <span className="text-xs font-bold text-white">Sarah Jenkins</span>
-                        <span className="text-[10px] text-[#00a884] font-medium flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-pulse" />
-                          Online • E2EE Verified
-                        </span>
+                        {isTypingPeer ? (
+                          <span className="text-[10px] text-[#00a884] font-medium flex items-center gap-1 animate-pulse">
+                            typing...
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-[#00a884] font-medium flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-pulse" />
+                            Online • E2EE Verified
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -489,7 +709,7 @@ export default function LandingPage() {
                     {demoMessages.map((msg) => (
                       <div 
                         key={msg.id} 
-                        className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}
+                        className={`flex animate-pop-bubble ${msg.sender === "me" ? "justify-end" : "justify-start"}`}
                       >
                         <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed relative shadow-md transition-all ${
                           msg.sender === "me" 
@@ -500,24 +720,30 @@ export default function LandingPage() {
                             <div className="flex items-center gap-2.5 py-1 w-52 sm:w-60">
                               <button 
                                 onClick={() => setIsPlayingAudio(!isPlayingAudio)}
-                                className="w-8 h-8 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow flex-shrink-0 hover:scale-105 transition"
+                                className="w-8 h-8 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow flex-shrink-0 hover:scale-105 active:scale-95 transition"
+                                title={isPlayingAudio ? "Pause Opus audio" : "Play Opus audio"}
                               >
                                 {isPlayingAudio ? <Pause size={13} /> : <Play size={13} className="ml-0.5" />}
                               </button>
                               <div className="flex-1 flex flex-col gap-1">
-                                <div className="flex items-center gap-1 h-4">
-                                  {[40, 70, 30, 90, 60, 100, 45, 80, 50, 95, 30, 75, 40].map((h, i) => (
+                                <div className="flex items-center gap-1 h-5">
+                                  {[40, 75, 30, 95, 60, 100, 45, 85, 55, 90, 35, 80, 45].map((h, i) => (
                                     <span 
                                       key={i} 
-                                      className={`w-1 rounded-full transition-all duration-200 ${
-                                        isPlayingAudio ? "bg-[#00a884] animate-pulse" : "bg-white/30"
+                                      className={`w-1 rounded-full transition-all duration-150 ${
+                                        isPlayingAudio ? "bg-[#00a884]" : "bg-white/30"
                                       }`}
-                                      style={{ height: `${h}%` }}
+                                      style={{ 
+                                        height: isPlayingAudio ? undefined : `${h}%`,
+                                        animation: isPlayingAudio ? "soundwave 0.8s ease-in-out infinite" : "none",
+                                        animationDelay: `${(i % 5) * 110}ms`,
+                                        transformOrigin: "bottom"
+                                      }}
                                     />
                                   ))}
                                 </div>
                                 <div className="flex items-center justify-between text-[10px] text-white/60 font-mono">
-                                  <span>0:14</span>
+                                  <span>0:{audioSeconds < 10 ? `0${audioSeconds}` : audioSeconds}</span>
                                   <span>0:38</span>
                                 </div>
                               </div>
@@ -541,17 +767,20 @@ export default function LandingPage() {
                       </div>
                     ))}
 
-                    {/* Live Typing Indicator */}
+                    {/* Live Peer Typing Indicator Bubble */}
                     {isTypingPeer && (
-                      <div className="flex items-center gap-2 text-xs text-[#8696a0] bg-[#202c33]/70 w-fit px-3 py-1.5 rounded-full border border-white/5">
-                        <span className="font-medium text-white/80">Sarah is typing</span>
-                        <div className="flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-bounce" style={{ animationDelay: "0ms" }} />
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-bounce" style={{ animationDelay: "150ms" }} />
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <div className="flex justify-start animate-pop-bubble">
+                        <div className="bg-[#202c33] rounded-2xl rounded-tl-none px-4 py-2 flex items-center gap-2 border border-white/[0.05] shadow-md">
+                          <span className="text-[11px] text-[#8696a0]">Sarah is typing</span>
+                          <div className="flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-bounce" style={{ animationDelay: "0ms" }} />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-bounce" style={{ animationDelay: "150ms" }} />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-bounce" style={{ animationDelay: "300ms" }} />
+                          </div>
                         </div>
                       </div>
                     )}
+                    <div ref={messagesEndRef} />
                   </div>
 
                   {/* Chat Input Dock */}
@@ -562,20 +791,30 @@ export default function LandingPage() {
                     <button className="text-[#8696a0] hover:text-white p-1 transition" title="Attach file">
                       <Paperclip size={18} />
                     </button>
-                    <input 
-                      type="text"
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleSendDemoMessage()}
-                      placeholder="Type a test message..."
-                      className="flex-1 bg-[#202c33] border border-transparent focus:border-[#00a884]/50 rounded-lg px-3 py-1.5 text-xs text-white placeholder-[#8696a0] focus:outline-none transition"
-                    />
+                    <div className="relative flex-1">
+                      <input 
+                        type="text"
+                        value={inputMessage}
+                        onChange={(e) => {
+                          setIsChatAutoPlaying(false);
+                          setInputMessage(e.target.value);
+                        }}
+                        onKeyDown={(e) => e.key === "Enter" && handleSendDemoMessage()}
+                        placeholder={isUserTypingSim ? "" : "Type a test message..."}
+                        className="w-full bg-[#202c33] border border-transparent focus:border-[#00a884]/50 rounded-lg px-3 py-1.5 text-xs text-white placeholder-[#8696a0] focus:outline-none transition pr-7"
+                      />
+                      {isUserTypingSim && (
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 w-1.5 h-3.5 bg-[#00a884] animate-caret rounded-xs pointer-events-none" />
+                      )}
+                    </div>
                     <button 
                       onClick={handleSendDemoMessage}
-                      className="w-8 h-8 rounded-lg bg-[#00a884] text-white flex items-center justify-center hover:bg-[#02906f] active:scale-95 transition shadow"
+                      className={`w-8 h-8 rounded-lg bg-[#00a884] text-white flex items-center justify-center hover:bg-[#02906f] active:scale-95 transition-all shadow ${
+                        isSendPulsing ? "scale-90 bg-[#02906f] ring-2 ring-[#00a884]" : ""
+                      }`}
                       title="Send message"
                     >
-                      <Send size={14} />
+                      <Send size={14} className={isSendPulsing ? "translate-x-0.5 -translate-y-0.5 transition-transform" : ""} />
                     </button>
                   </div>
 
@@ -595,15 +834,28 @@ export default function LandingPage() {
                     <span>Opus Audio Voice Notes</span>
                   </span>
                 </div>
-                <button 
-                  onClick={() => {
-                    setInputMessage("Testing sub-24ms encrypted socket latency! ⚡");
-                  }} 
-                  className="text-[#00a884] hover:underline flex items-center gap-1 font-medium"
-                >
-                  <RefreshCw size={11} />
-                  <span>Insert sample text</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => {
+                      setIsChatAutoPlaying(true);
+                    }} 
+                    className="text-[#00a884] hover:underline flex items-center gap-1 font-medium"
+                    title="Restart live auto-simulation"
+                  >
+                    <RefreshCw size={11} className={isChatAutoPlaying ? "animate-spin" : ""} style={{ animationDuration: "3s" }} />
+                    <span>Replay simulation</span>
+                  </button>
+                  <span className="text-white/20">•</span>
+                  <button 
+                    onClick={() => {
+                      setIsChatAutoPlaying(false);
+                      setInputMessage("Testing sub-24ms encrypted socket latency! ⚡");
+                    }} 
+                    className="text-[#8696a0] hover:text-white flex items-center gap-1 font-medium"
+                  >
+                    <span>Insert sample text</span>
+                  </button>
+                </div>
               </div>
             </div>
 

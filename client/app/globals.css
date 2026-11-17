@@ -329,3 +329,37 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.35);
 }
+
+/* Dynamic Live Simulator Keyframe Animations */
+@keyframes popBubble {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes soundwave {
+  0%, 100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes blinkCaret {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-pop-bubble {
+  animation: popBubble 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-caret {
+  animation: blinkCaret 0.8s ease-in-out infinite;
+}
