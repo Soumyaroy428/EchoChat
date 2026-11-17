@@ -20,8 +20,12 @@ import {
   Sparkles,
   Phone,
   PhoneCall,
+  PhoneOff,
   Video,
+  VideoOff,
   Mic,
+  MicOff,
+  Monitor,
   Send,
   Check,
   CheckCheck,
@@ -31,10 +35,12 @@ import {
   Play,
   Pause,
   Volume2,
+  VolumeX,
   Paperclip,
   Smile,
   Camera,
   RefreshCw,
+  RotateCcw,
   Eye,
   ShieldAlert,
   Server
@@ -90,6 +96,31 @@ export default function LandingPage() {
   const [isSendPulsing, setIsSendPulsing] = useState(false);
   const [audioSeconds, setAudioSeconds] = useState(14);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // -----------------------------------------------------------
+  // WebRTC Calling Demo State (Video & Audio)
+  // -----------------------------------------------------------
+  const [callDemoMode, setCallDemoMode] = useState<"video" | "audio">("video");
+  const [isCallActive, setIsCallActive] = useState(true);
+  const [isMicMuted, setIsMicMuted] = useState(false);
+  const [isVideoMuted, setIsVideoMuted] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
+  const [callTimer, setCallTimer] = useState(228);
+
+  useEffect(() => {
+    if (!isCallActive) return;
+    const interval = setInterval(() => {
+      setCallTimer((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isCallActive]);
+
+  const formatCallTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins < 10 ? "0" + mins : mins}:${secs < 10 ? "0" + secs : secs}`;
+  };
 
   const [demoMessages, setDemoMessages] = useState<DemoMessage[]>([
     {
@@ -571,9 +602,9 @@ export default function LandingPage() {
             
             {/* ---------------------------------------------------- */}
             {/* ROW 1 - TILE 1: HERO UI (Live Chat Simulator) */}
-            {/* Span: 8 cols on desktop, full width on mobile/tablet */}
+            {/* Span: 7 cols on desktop, full width on mobile/tablet */}
             {/* ---------------------------------------------------- */}
-            <div className="lg:col-span-8 p-5 sm:p-7 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#00a884]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
+            <div className="lg:col-span-7 p-5 sm:p-7 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#00a884]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-80 h-80 bg-[radial-gradient(ellipse_at_top_right,_rgba(0,168,132,0.1),_transparent_70%)] pointer-events-none" />
 
               <div>
@@ -865,32 +896,342 @@ export default function LandingPage() {
             </div>
 
             {/* ---------------------------------------------------- */}
-            {/* ROW 1 - TILE 2: BIG TYPE STAT TILE (<24ms Latency) */}
-            {/* Span: 4 cols on desktop, 6 on tablet, 12 on mobile */}
+            {/* ROW 1 - TILE 2: P2P WebRTC HD Calling (Video & Audio Demo) */}
+            {/* Span: 5 cols on desktop, 12 on tablet and mobile */}
             {/* ---------------------------------------------------- */}
-            <div className="lg:col-span-4 p-6 sm:p-7 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#00a884]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
-              <div className="absolute -bottom-8 -right-8 w-44 h-44 bg-[radial-gradient(circle,_rgba(0,168,132,0.15),_transparent_70%)] pointer-events-none" />
+            <div className="lg:col-span-5 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#3b82f6]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.12),_transparent_70%)] pointer-events-none" />
 
               <div>
-                <div className="text-[11px] font-mono text-[#00a884] uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#00a884] animate-ping" />
-                  <span>Socket.IO Latency</span>
+                {/* Header & Mode Switcher */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                        P2P WebRTC HD Calling
+                      </h3>
+                      {isCallActive && (
+                        <span className="w-2 h-2 rounded-full bg-[#00a884] animate-ping" />
+                      )}
+                    </div>
+                    <p className="text-xs text-[#8696a0] mt-0.5">
+                      <strong className="text-[#e9edef] font-semibold">Zero-relay media.</strong> Direct DTLS-SRTP encrypted peer streams.
+                    </p>
+                  </div>
+
+                  {/* Video / Audio Mode Toggle */}
+                  <div className="flex items-center gap-1 bg-[#0b141a] p-1 rounded-xl border border-white/10 self-start sm:self-auto">
+                    <button
+                      onClick={() => { setCallDemoMode("video"); setIsCallActive(true); }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1.5 ${
+                        callDemoMode === "video" 
+                          ? "bg-[#3b82f6] text-white shadow-sm" 
+                          : "text-[#8696a0] hover:text-white"
+                      }`}
+                      title="Switch to Video Call demo"
+                    >
+                      <Video size={13} />
+                      <span>Video</span>
+                    </button>
+                    <button
+                      onClick={() => { setCallDemoMode("audio"); setIsCallActive(true); }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1.5 ${
+                        callDemoMode === "audio" 
+                          ? "bg-[#00a884] text-white shadow-sm" 
+                          : "text-[#8696a0] hover:text-white"
+                      }`}
+                      title="Switch to Audio Call demo"
+                    >
+                      <Phone size={13} />
+                      <span>Audio</span>
+                    </button>
+                  </div>
                 </div>
 
-                {/* Big Display Number (Stageshow Rule: 48 to 72px) */}
-                <div className="text-5xl sm:text-6xl font-black text-white tracking-tighter my-3 font-mono">
-                  &lt;24<span className="text-2xl sm:text-3xl font-bold text-[#00a884] ml-1">ms</span>
+                {/* THE CALL STAGE VIEWPORT */}
+                <div className="w-full rounded-2xl bg-[#0b141a] border border-white/10 shadow-xl overflow-hidden relative">
+                  
+                  {/* Call Header Status Bar */}
+                  <div className="bg-[#1e293b]/80 px-3.5 py-2 border-b border-white/[0.08] flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${isCallActive ? "bg-[#00a884] animate-pulse" : "bg-red-500"}`} />
+                      <span className="font-semibold text-white">
+                        {isCallActive ? `Live Call: ${formatCallTime(callTimer)}` : "Call Ended"}
+                      </span>
+                      <span className="text-[10px] text-white/50 hidden sm:inline">• 1080p 60fps</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] text-[#00a884] font-mono">
+                      <Lock size={10} />
+                      <span>E2EE DTLS</span>
+                    </div>
+                  </div>
+
+                  {/* ACTIVE CALL CONTENT */}
+                  {isCallActive ? (
+                    callDemoMode === "video" ? (
+                      /* ---------------- VIDEO CALL VIEW ---------------- */
+                      <div className="relative h-[210px] sm:h-[225px] bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0b141a] flex flex-col justify-between p-3 overflow-hidden">
+                        {/* Mesh background effect */}
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(59,130,246,0.15),_transparent_70%)] pointer-events-none" />
+
+                        {/* Remote Peer Stream Overlay (Sarah Jenkins) */}
+                        <div className="flex items-center justify-between z-10">
+                          <div className="flex items-center gap-2 bg-[#0b141a]/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
+                            <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#00a884] to-[#06b6d4] flex items-center justify-center text-[10px] font-bold text-white">
+                              SJ
+                            </div>
+                            <span className="text-xs font-medium text-white">Sarah Jenkins</span>
+                            <span className="text-[10px] text-[#00a884] flex items-center gap-0.5">
+                              <Mic size={10} />
+                              <span>Speaking</span>
+                            </span>
+                          </div>
+
+                          <span className="text-[10px] font-mono bg-black/50 px-2 py-0.5 rounded text-white/70">
+                            2.4 Mbps
+                          </span>
+                        </div>
+
+                        {/* Center Stage Avatar & Camera feed simulation */}
+                        <div className="self-center flex flex-col items-center justify-center z-10">
+                          <div className="relative">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-[#3b82f6]/40 to-[#00a884]/40 border-2 border-[#3b82f6] flex items-center justify-center shadow-2xl relative">
+                              <div className="w-13 h-13 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-[#00a884] to-[#06b6d4] flex items-center justify-center font-bold text-white text-lg sm:text-xl shadow-inner">
+                                SJ
+                              </div>
+                              {/* Pulsing speaking halo */}
+                              <span className="absolute -inset-1.5 rounded-full border border-[#00a884]/60 animate-ping pointer-events-none" />
+                            </div>
+                          </div>
+                          {isScreenSharing && (
+                            <span className="mt-1.5 text-[10px] bg-[#3b82f6]/20 border border-[#3b82f6]/40 text-[#3b82f6] px-2 py-0.5 rounded-full font-medium">
+                              🖥️ Screen Share Active (1080p)
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Picture-in-Picture (PiP) Window (Self - You) */}
+                        <div className="absolute bottom-13 right-3 w-18 h-22 sm:w-22 sm:h-26 rounded-xl bg-[#0b141a]/90 border border-white/20 shadow-2xl overflow-hidden z-20 flex flex-col justify-between p-1.5 backdrop-blur-md">
+                          <div className="flex items-center justify-between text-[9px] text-white/70">
+                            <span>You</span>
+                            {isMicMuted ? <MicOff size={9} className="text-red-400" /> : <Mic size={9} className="text-[#00a884]" />}
+                          </div>
+                          <div className="self-center my-auto flex flex-col items-center">
+                            {isVideoMuted ? (
+                              <div className="flex flex-col items-center text-white/40">
+                                <VideoOff size={14} />
+                                <span className="text-[8px] mt-0.5">Cam Off</span>
+                              </div>
+                            ) : (
+                              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-[#6366f1] to-[#3b82f6] flex items-center justify-center text-white text-[10px] font-bold">
+                                You
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-[8px] text-center text-white/40 font-mono">Local HD</span>
+                        </div>
+
+                        {/* Floating Action Controls Bar */}
+                        <div className="z-20 bg-[#0b141a]/85 backdrop-blur-lg px-3 py-1.5 rounded-xl border border-white/10 flex items-center justify-center gap-2.5 mx-auto shadow-lg">
+                          {/* Mic Toggle */}
+                          <button
+                            onClick={() => setIsMicMuted((p) => !p)}
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition ${
+                              isMicMuted 
+                                ? "bg-red-500/20 text-red-400 border border-red-500/30" 
+                                : "bg-white/10 text-white hover:bg-white/20"
+                            }`}
+                            title={isMicMuted ? "Unmute microphone" : "Mute microphone"}
+                          >
+                            {isMicMuted ? <MicOff size={13} /> : <Mic size={13} />}
+                          </button>
+
+                          {/* Camera Toggle */}
+                          <button
+                            onClick={() => setIsVideoMuted((p) => !p)}
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition ${
+                              isVideoMuted 
+                                ? "bg-red-500/20 text-red-400 border border-red-500/30" 
+                                : "bg-white/10 text-white hover:bg-white/20"
+                            }`}
+                            title={isVideoMuted ? "Turn on camera" : "Turn off camera"}
+                          >
+                            {isVideoMuted ? <VideoOff size={13} /> : <Video size={13} />}
+                          </button>
+
+                          {/* Screen Share Toggle */}
+                          <button
+                            onClick={() => setIsScreenSharing((p) => !p)}
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition ${
+                              isScreenSharing 
+                                ? "bg-[#3b82f6]/30 text-[#3b82f6] border border-[#3b82f6]/50" 
+                                : "bg-white/10 text-white hover:bg-white/20"
+                            }`}
+                            title={isScreenSharing ? "Stop sharing screen" : "Share screen"}
+                          >
+                            <Monitor size={13} />
+                          </button>
+
+                          {/* End Call */}
+                          <button
+                            onClick={() => setIsCallActive(false)}
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg transition active:scale-95"
+                            title="End call"
+                          >
+                            <PhoneOff size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* ---------------- AUDIO CALL VIEW ---------------- */
+                      <div className="relative h-[210px] sm:h-[225px] bg-gradient-to-b from-[#0c1f1c] via-[#0f2923] to-[#0b141a] flex flex-col justify-between p-3 overflow-hidden">
+                        <div className="flex items-center justify-between z-10 text-xs">
+                          <span className="text-[#00a884] font-medium flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-[#00a884] animate-pulse" />
+                            <span>Opus 48kHz HD Audio</span>
+                          </span>
+                          <span className="text-[10px] font-mono text-white/50">4ms Jitter • 0% Loss</span>
+                        </div>
+
+                        {/* Central Pulsing Audio Target */}
+                        <div className="self-center flex flex-col items-center my-auto z-10">
+                          <div className="relative">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-[#00a884] to-[#06b6d4] flex items-center justify-center font-bold text-white text-lg shadow-xl ring-4 ring-[#00a884]/30">
+                              SJ
+                            </div>
+                            <span className="absolute -inset-2 rounded-full border border-[#00a884]/40 animate-ping pointer-events-none" />
+                            <span className="absolute -inset-4 rounded-full border border-[#00a884]/20 animate-pulse pointer-events-none" />
+                          </div>
+                          <span className="text-xs sm:text-sm font-bold text-white mt-1.5">Sarah Jenkins</span>
+                          
+                          {/* Live Equalizer Voice Waveform */}
+                          <div className="flex items-center gap-1 h-4 sm:h-5 mt-1.5">
+                            {[30, 80, 45, 100, 60, 90, 40, 75, 50, 85, 35, 70].map((h, i) => (
+                              <span
+                                key={i}
+                                className="w-1 rounded-full bg-[#00a884]"
+                                style={{
+                                  animation: isCallActive && !isMicMuted ? "soundwave 0.8s ease-in-out infinite" : "none",
+                                  animationDelay: `${(i % 4) * 120}ms`,
+                                  height: `${h}%`,
+                                  transformOrigin: "bottom"
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Audio Controls */}
+                        <div className="z-20 bg-[#0b141a]/85 backdrop-blur-lg px-3 py-1.5 rounded-xl border border-white/10 flex items-center justify-center gap-2.5 mx-auto shadow-lg">
+                          <button
+                            onClick={() => setIsMicMuted((p) => !p)}
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition ${
+                              isMicMuted ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/10 text-white hover:bg-white/20"
+                            }`}
+                            title={isMicMuted ? "Unmute mic" : "Mute mic"}
+                          >
+                            {isMicMuted ? <MicOff size={13} /> : <Mic size={13} />}
+                          </button>
+
+                          <button
+                            onClick={() => setIsSpeakerOn((p) => !p)}
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition ${
+                              !isSpeakerOn ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/10 text-white hover:bg-white/20"
+                            }`}
+                            title={isSpeakerOn ? "Speaker on" : "Speaker off"}
+                          >
+                            {isSpeakerOn ? <Volume2 size={13} /> : <VolumeX size={13} />}
+                          </button>
+
+                          <button
+                            onClick={() => setCallDemoMode("video")}
+                            className="px-2 py-1 rounded-lg bg-[#3b82f6]/20 border border-[#3b82f6]/40 text-[#3b82f6] text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 hover:bg-[#3b82f6]/30 transition"
+                            title="Upgrade call to HD video"
+                          >
+                            <Video size={11} />
+                            <span>Switch to Video</span>
+                          </button>
+
+                          <button
+                            onClick={() => setIsCallActive(false)}
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg transition active:scale-95"
+                            title="End call"
+                          >
+                            <PhoneOff size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    /* ---------------- CALL ENDED SCREEN ---------------- */
+                    <div className="h-[210px] sm:h-[225px] bg-[#0b141a] flex flex-col items-center justify-center p-4 text-center">
+                      <div className="w-10 h-10 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 flex items-center justify-center mb-2">
+                        <PhoneOff size={18} />
+                      </div>
+                      <span className="text-xs sm:text-sm font-bold text-white">Call Disconnected</span>
+                      <span className="text-[11px] text-[#8696a0] mt-0.5">
+                        Duration: {formatCallTime(callTimer)} • Direct P2P ended
+                      </span>
+                      <button
+                        onClick={() => {
+                          setIsCallActive(true);
+                          setCallTimer(0);
+                        }}
+                        className="mt-2.5 px-3.5 py-1.5 rounded-xl bg-[#00a884] hover:bg-[#02906f] text-white text-xs font-semibold flex items-center gap-1.5 shadow transition active:scale-95"
+                      >
+                        <RotateCcw size={12} />
+                        <span>Restart Call Demo</span>
+                      </button>
+                    </div>
+                  )}
+
                 </div>
 
-                {/* Run-in Copy */}
-                <p className="text-xs sm:text-sm text-[#8696a0] leading-relaxed mt-4">
-                  <strong className="text-[#e9edef] font-semibold">Instant socket delivery.</strong> Direct bi-directional WebSocket connections dispatch messages and receipts with sub-perceptual lag.
-                </p>
+                {/* HOW TO USE WEBRTC CALLING: 3-STEP EXPLAINER */}
+                <div className="mt-3.5 pt-3 border-t border-white/[0.08]">
+                  <div className="text-[11px] font-bold text-[#53bdeb] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Sparkles size={12} />
+                    <span>How to use WebRTC Calling:</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                    <div className="bg-[#0b141a] p-2 rounded-xl border border-white/[0.05]">
+                      <div className="flex items-center gap-1.5 text-white font-semibold mb-1">
+                        <span className="w-4 h-4 rounded-full bg-[#00a884]/20 text-[#00a884] text-[10px] flex items-center justify-center font-bold">1</span>
+                        <span>One-Click Dial</span>
+                      </div>
+                      <p className="text-[#8696a0] text-[10px] leading-snug">
+                        Open any chat and tap <Phone size={10} className="inline text-[#00a884]" /> Phone or <Video size={10} className="inline text-[#00a884]" /> Video in the top header.
+                      </p>
+                    </div>
+
+                    <div className="bg-[#0b141a] p-2 rounded-xl border border-white/[0.05]">
+                      <div className="flex items-center gap-1.5 text-white font-semibold mb-1">
+                        <span className="w-4 h-4 rounded-full bg-[#00a884]/20 text-[#00a884] text-[10px] flex items-center justify-center font-bold">2</span>
+                        <span>Direct P2P Link</span>
+                      </div>
+                      <p className="text-[#8696a0] text-[10px] leading-snug">
+                        WebSockets negotiates direct ICE STUN/TURN for sub-50ms peer streams.
+                      </p>
+                    </div>
+
+                    <div className="bg-[#0b141a] p-2 rounded-xl border border-white/[0.05]">
+                      <div className="flex items-center gap-1.5 text-white font-semibold mb-1">
+                        <span className="w-4 h-4 rounded-full bg-[#00a884]/20 text-[#00a884] text-[10px] flex items-center justify-center font-bold">3</span>
+                        <span>In-Call Controls</span>
+                      </div>
+                      <p className="text-[#8696a0] text-[10px] leading-snug">
+                        Mute mic, toggle camera, or share screen with DTLS-SRTP encryption.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
-              <div className="mt-6 pt-3 border-t border-white/[0.06] text-[11px] text-[#8696a0] flex items-center justify-between">
-                <span>Persistent Connection</span>
-                <span className="font-mono text-[#00a884]">Live Stream Ready</span>
+              {/* Bottom Card Summary */}
+              <div className="mt-3.5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-[#8696a0]">
+                <span>Interactive Call Demo • Click controls to test</span>
+                <span className="font-mono text-[#3b82f6]">Simple-Peer WebRTC</span>
               </div>
             </div>
 
@@ -952,9 +1293,9 @@ export default function LandingPage() {
 
             {/* ---------------------------------------------------- */}
             {/* ROW 2 - TILE 4: DIAGRAM TILE (E2EE Message Pipeline) */}
-            {/* Span: 5 cols on desktop, 6 on tablet, 12 on mobile */}
+            {/* Span: 4 cols on desktop, 6 on tablet, 12 on mobile */}
             {/* ---------------------------------------------------- */}
-            <div className="lg:col-span-5 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#10b981]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
+            <div className="lg:col-span-4 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#10b981]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
               <div>
                 <h3 className="text-base font-bold text-white tracking-tight mb-1">
                   E2EE Cryptographic Pipeline
@@ -992,38 +1333,13 @@ export default function LandingPage() {
               </div>
 
               <div className="mt-4 pt-3 border-t border-white/[0.06] text-[11px] text-[#8696a0] flex items-center justify-between">
-                <span>Curve25519 (ECDH) Key Exchange</span>
+                <span>Curve25519 Key Exchange</span>
                 <span className="font-mono text-[#10b981]">Native WebCrypto</span>
               </div>
             </div>
 
             {/* ---------------------------------------------------- */}
-            {/* ROW 2 - TILE 5: BIG TYPE STAT TILE (Zero Plaintext Leaks) */}
-            {/* Span: 3 cols on desktop, 6 on tablet, 12 on mobile */}
-            {/* ---------------------------------------------------- */}
-            <div className="lg:col-span-3 p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#10b981]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
-              <div>
-                <div className="text-[11px] font-mono text-[#10b981] uppercase tracking-wider mb-2">
-                  Server Telemetry
-                </div>
-
-                <div className="text-5xl sm:text-6xl font-black text-white tracking-tighter my-2 font-mono">
-                  0<span className="text-2xl font-bold text-[#10b981] ml-1">%</span>
-                </div>
-
-                <p className="text-xs text-[#8696a0] leading-relaxed mt-3">
-                  <strong className="text-[#e9edef] font-semibold">Zero plaintext leaks.</strong> No third-party ad brokers, trackers, or plain database storage.
-                </p>
-              </div>
-
-              <div className="mt-5 pt-3 border-t border-white/[0.06] text-[11px] text-[#8696a0] flex items-center justify-between">
-                <span>GDPR & Privacy First</span>
-                <span className="font-mono text-[#10b981]">Client Keys</span>
-              </div>
-            </div>
-
-            {/* ---------------------------------------------------- */}
-            {/* ROW 3 - TILE 6: COMPONENT TILE (24h Ephemeral Stories) */}
+            {/* ROW 2 - TILE 5: COMPONENT TILE (24h Ephemeral Stories) */}
             {/* Span: 4 cols on desktop, 6 on tablet, 12 on mobile */}
             {/* ---------------------------------------------------- */}
             <div className="lg:col-span-4 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#f59e0b]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
@@ -1078,105 +1394,88 @@ export default function LandingPage() {
             </div>
 
             {/* ---------------------------------------------------- */}
-            {/* ROW 3 - TILE 7: COMPONENT TILE (WebRTC HD Calling) */}
-            {/* Span: 4 cols on desktop, 6 on tablet, 12 on mobile */}
+            {/* ROW 3 - TILE 6: COLLECTION TILE (Rich Multimodal Hub) */}
+            {/* Span: 12 (Full Width) */}
             {/* ---------------------------------------------------- */}
-            <div className="lg:col-span-4 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#3b82f6]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
+            <div className="lg:col-span-12 p-5 sm:p-7 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#a855f7]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-base font-bold text-white tracking-tight">
-                    P2P WebRTC HD Calling
-                  </h3>
-                  <span className="w-2 h-2 rounded-full bg-[#3b82f6] animate-pulse" />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                      <span>Rich Multimodal Sharing</span>
+                      <span className="w-2 h-2 rounded-full bg-[#a855f7] animate-pulse" />
+                    </h3>
+                    <p className="text-xs text-[#8696a0] mt-0.5">
+                      <strong className="text-[#e9edef] font-semibold">Any format, any device.</strong> High-definition voice notes, uncompressed media, documents, and real-time GPS tracking.
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-mono text-[#a855f7] bg-[#a855f7]/15 border border-[#a855f7]/30 px-3 py-1 rounded-full self-start sm:self-auto font-medium">
+                    Zero-Compression Relay
+                  </span>
                 </div>
-                <p className="text-xs text-[#8696a0] mb-4">
-                  <strong className="text-[#e9edef] font-semibold">Direct peer streams.</strong> Encrypted audio and video without recording relays.
-                </p>
 
-                {/* Call Simulation Widget */}
-                <div className="p-3.5 rounded-2xl bg-[#0b141a] border border-white/[0.08] flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3b82f6] to-[#00a884] flex items-center justify-center text-white font-bold text-xs shadow-md">
-                      MK
+                {/* 5 Expansive Media Badges */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                  <div className="p-3.5 rounded-2xl bg-[#0b141a] border border-white/[0.06] hover:border-[#a855f7]/30 transition flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2">
+                      <Volume2 size={18} className="text-[#a855f7]" />
+                      <span className="text-[10px] font-mono text-white/50">48kHz</span>
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-white block">Marcus King</span>
-                      <span className="text-[10px] text-[#00a884] font-medium flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-ping" />
-                        03:48 • 48kHz Opus
-                      </span>
+                      <span className="text-xs font-semibold text-white block">Opus Voice Notes</span>
+                      <span className="text-[10px] text-[#8696a0] mt-0.5 block">Sub-1ms latency, live waveform</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-7 h-7 rounded-full bg-[#202c33] text-white flex items-center justify-center cursor-pointer">
-                      <Mic size={12} />
-                    </span>
-                    <span className="w-7 h-7 rounded-full bg-red-500/80 text-white flex items-center justify-center cursor-pointer">
-                      <Phone size={12} className="rotate-[135deg]" />
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-white/[0.06] text-[11px] text-[#8696a0] flex items-center justify-between">
-                <span>Simple-Peer WebRTC</span>
-                <span className="font-mono text-[#3b82f6]">Zero-Hop Audio</span>
-              </div>
-            </div>
-
-            {/* ---------------------------------------------------- */}
-            {/* ROW 3 - TILE 8: COLLECTION TILE (Rich Multimodal Hub) */}
-            {/* Span: 4 cols on desktop, 12 on tablet/mobile */}
-            {/* ---------------------------------------------------- */}
-            <div className="lg:col-span-4 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#a855f7]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
-              <div>
-                <h3 className="text-base font-bold text-white tracking-tight mb-1">
-                  Rich Multimodal Sharing
-                </h3>
-                <p className="text-xs text-[#8696a0] mb-4">
-                  <strong className="text-[#e9edef] font-semibold">Any format.</strong> Voice, high-definition media, files, and live Google Maps pins.
-                </p>
-
-                {/* 4 Media Badges */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="p-2.5 rounded-xl bg-[#0b141a] border border-white/[0.06] flex items-center gap-2">
-                    <Volume2 size={15} className="text-[#a855f7] flex-shrink-0" />
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-semibold text-white">Voice Note</span>
-                      <span className="text-[9px] text-[#8696a0]">Sub-1ms</span>
+                  <div className="p-3.5 rounded-2xl bg-[#0b141a] border border-white/[0.06] hover:border-[#00a884]/30 transition flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2">
+                      <Camera size={18} className="text-[#00a884]" />
+                      <span className="text-[10px] font-mono text-white/50">Lossless</span>
+                    </div>
+                    <div>
+                      <span className="text-xs font-semibold text-white block">HD Photos & Video</span>
+                      <span className="text-[10px] text-[#8696a0] mt-0.5 block">Zero-compression gallery</span>
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-xl bg-[#0b141a] border border-white/[0.06] flex items-center gap-2">
-                    <Camera size={15} className="text-[#00a884] flex-shrink-0" />
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-semibold text-white">HD Media</span>
-                      <span className="text-[9px] text-[#8696a0]">Instant view</span>
+                  <div className="p-3.5 rounded-2xl bg-[#0b141a] border border-white/[0.06] hover:border-[#06b6d4]/30 transition flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2">
+                      <FileText size={18} className="text-[#06b6d4]" />
+                      <span className="text-[10px] font-mono text-white/50">Up to 2GB</span>
+                    </div>
+                    <div>
+                      <span className="text-xs font-semibold text-white block">Code & Documents</span>
+                      <span className="text-[10px] text-[#8696a0] mt-0.5 block">PDF, Zip, Markdown, code</span>
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-xl bg-[#0b141a] border border-white/[0.06] flex items-center gap-2">
-                    <FileText size={15} className="text-[#06b6d4] flex-shrink-0" />
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-semibold text-white">Documents</span>
-                      <span className="text-[9px] text-[#8696a0]">PDF, Code</span>
+                  <div className="p-3.5 rounded-2xl bg-[#0b141a] border border-white/[0.06] hover:border-[#ef4444]/30 transition flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2">
+                      <MapPin size={18} className="text-[#ef4444]" />
+                      <span className="text-[10px] font-mono text-white/50">Google Maps</span>
+                    </div>
+                    <div>
+                      <span className="text-xs font-semibold text-white block">Live GPS Location</span>
+                      <span className="text-[10px] text-[#8696a0] mt-0.5 block">Encrypted real-time pin sharing</span>
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-xl bg-[#0b141a] border border-white/[0.06] flex items-center gap-2">
-                    <MapPin size={15} className="text-[#ef4444] flex-shrink-0" />
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-semibold text-white">Live GPS</span>
-                      <span className="text-[9px] text-[#8696a0]">Maps pin</span>
+                  <div className="p-3.5 rounded-2xl bg-[#0b141a] border border-white/[0.06] hover:border-[#3b82f6]/30 transition flex flex-col justify-between col-span-2 sm:col-span-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <Smile size={18} className="text-[#3b82f6]" />
+                      <span className="text-[10px] font-mono text-white/50">Instant</span>
+                    </div>
+                    <div>
+                      <span className="text-xs font-semibold text-white block">Reactions & Stickers</span>
+                      <span className="text-[10px] text-[#8696a0] mt-0.5 block">Animated emoji tapbacks</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-white/[0.06] text-[11px] text-[#8696a0] flex items-center justify-between">
-                <span>Bearer Token Protection</span>
-                <span className="font-mono text-[#a855f7]">RBAC Media</span>
+              <div className="mt-4 pt-3 border-t border-white/[0.06] text-[11px] text-[#8696a0] flex flex-wrap items-center justify-between gap-2">
+                <span>Bearer Token Protected • End-to-End Encrypted File Transfer</span>
+                <span className="font-mono text-[#a855f7]">RBAC Multi-Format Engine</span>
               </div>
             </div>
 
