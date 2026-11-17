@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { 
   ArrowRight, 
   Lock, 
@@ -22,7 +22,6 @@ import {
   PhoneCall,
   Video,
   Mic,
-  MicOff,
   Send,
   Check,
   CheckCheck,
@@ -37,8 +36,8 @@ import {
   Camera,
   RefreshCw,
   Eye,
-  Sliders,
-  Maximize2
+  ShieldAlert,
+  Server
 } from "lucide-react";
 import AuthPage from "../auth/AuthPage";
 
@@ -62,7 +61,7 @@ function GithubIcon({ size = 14, className = "" }: { size?: number; className?: 
 }
 
 // -------------------------------------------------------------
-// Interactive Demo Types
+// Interactive Stageshow Simulator Types
 // -------------------------------------------------------------
 interface DemoMessage {
   id: string;
@@ -79,11 +78,10 @@ export default function LandingPage() {
   const [modalContent, setModalContent] = useState<"privacy" | "terms" | "security" | null>(null);
 
   // -----------------------------------------------------------
-  // Interactive Simulator State (For Live App Screenshots)
+  // Stageshow Hero UI State (Screenshot & Live Demo)
   // -----------------------------------------------------------
   const [deviceFrame, setDeviceFrame] = useState<"desktop" | "mobile">("desktop");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [audioProgress, setAudioProgress] = useState(35);
   const [isTypingPeer, setIsTypingPeer] = useState(false);
   const [simulatedCallActive, setSimulatedCallActive] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
@@ -120,22 +118,20 @@ export default function LandingPage() {
   ]);
 
   // -----------------------------------------------------------
-  // Interactive Auth Stepper State
+  // Stageshow Component Tile States
   // -----------------------------------------------------------
   const [authStep, setAuthStep] = useState<1 | 2 | 3 | 4>(1);
-  const [authEmail, setAuthEmail] = useState("alex.rivera@echochat.app");
   const [isAuthAutoPlaying, setIsAuthAutoPlaying] = useState(true);
 
-  // Auto-cycle auth steps for engaging animation
+  // Auto-cycle auth steps for subtle motion without chaos
   useEffect(() => {
     if (!isAuthAutoPlaying) return;
     const interval = setInterval(() => {
       setAuthStep((prev) => (prev >= 4 ? 1 : ((prev + 1) as 1 | 2 | 3 | 4)));
-    }, 3200);
+    }, 3600);
     return () => clearInterval(interval);
   }, [isAuthAutoPlaying]);
 
-  // Simulated peer typing effect
   const handleSendDemoMessage = () => {
     if (!inputMessage.trim()) return;
     const newMsg: DemoMessage = {
@@ -148,12 +144,12 @@ export default function LandingPage() {
     setDemoMessages((prev) => [...prev, newMsg]);
     setInputMessage("");
 
-    // Simulate delivery ticks
+    // Simulate delivery tick progression: sent -> delivered -> read
     setTimeout(() => {
       setDemoMessages((prev) =>
         prev.map((m) => (m.id === newMsg.id ? { ...m, status: "delivered" } : m))
       );
-    }, 800);
+    }, 700);
 
     setTimeout(() => {
       setDemoMessages((prev) =>
@@ -173,8 +169,8 @@ export default function LandingPage() {
             status: "read",
           },
         ]);
-      }, 2000);
-    }, 1800);
+      }, 1900);
+    }, 1600);
   };
 
   const handleLoginClick = () => {
@@ -207,7 +203,6 @@ export default function LandingPage() {
       {/* ======================================================== */}
       <header className="h-20 bg-[#111b21] border-b border-white/[0.08] px-4 sm:px-8 lg:px-12 flex items-center justify-between z-30 sticky top-0 shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
         <div className="flex items-center gap-3">
-          {/* Logo with transparent background - blends 100% with header */}
           <div className="flex items-center cursor-pointer" onClick={() => setShowAuth(false)}>
             <img
               src="/logo-main.svg"
@@ -356,18 +351,19 @@ export default function LandingPage() {
         </section>
 
         {/* ======================================================== */}
-        {/* INTERACTIVE BENTO GRID SYSTEM: APPLICATION BLUEPRINT */}
+        {/* STAGESHOW ART-DIRECTED BENTO GRID: PRODUCT BLUEPRINT */}
+        {/* Rules: One Hero, Contrast Neighbors, Big Type Stat Tiles */}
         {/* ======================================================== */}
         <section className="w-full my-6 sm:my-10">
           
-          {/* Section Header */}
+          {/* Section Lead Copy */}
           <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00a884]/15 border border-[#00a884]/30 text-[#00a884] text-xs font-semibold uppercase tracking-wider mb-3">
               <Sparkles size={13} />
-              <span>Interactive System Blueprint & Screenshots</span>
+              <span>Stageshow Product UI & System Blueprint</span>
             </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#e9edef] tracking-tight">
-              How EchoChat Works
+              Engineered for Speed. Built for Privacy.
             </h2>
             <p className="text-xs sm:text-sm text-[#8696a0] mt-2 leading-relaxed">
               Explore passwordless authentication, end-to-end encrypted message workflows, and real-time multimodal capabilities directly from this live animated simulator.
@@ -375,37 +371,31 @@ export default function LandingPage() {
           </div>
 
           {/* ====================================================== */}
-          {/* THE BENTO GRID (Responsive 12-Column Layout) */}
+          {/* BENTO GRID (Responsive 12-Column Layout) */}
           {/* ====================================================== */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 sm:gap-6">
             
             {/* ---------------------------------------------------- */}
-            {/* BENTO CARD 1: LIVE APPLICATION SIMULATOR (Take Screenshot) */}
-            {/* Span: 12 on mobile/tablet, 8 on desktop */}
+            {/* ROW 1 - TILE 1: HERO UI (Live Chat Simulator) */}
+            {/* Span: 8 cols on desktop, full width on mobile/tablet */}
             {/* ---------------------------------------------------- */}
             <div className="lg:col-span-8 p-5 sm:p-7 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#00a884]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-80 h-80 bg-[radial-gradient(ellipse_at_top_right,_rgba(0,168,132,0.1),_transparent_70%)] pointer-events-none" />
 
               <div>
-                {/* Header with Title and Mode Toggles */}
+                {/* Header with Stageshow Run-in Copy and Frame Switcher */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#00a884]/20 border border-[#00a884]/40 text-[#00a884] flex items-center justify-center">
-                      <MessageSquare size={18} />
-                    </div>
-                    <div>
-                      <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                        <span>Live Chat Simulator</span>
-                        <span className="px-2 py-0.5 rounded-full bg-[#00a884]/15 border border-[#00a884]/30 text-[#00a884] text-[10px] font-mono uppercase tracking-wider">
-                          Ready for Screenshot
-                        </span>
-                      </h3>
-                      <p className="text-xs text-[#8696a0]">Interactive real-time chat with encrypted delivery receipts & voice note audio</p>
-                    </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                      Live Chat Simulator
+                    </h3>
+                    <p className="text-xs text-[#8696a0] mt-0.5">
+                      <strong className="text-[#e9edef] font-semibold">Sub-24ms delivery.</strong> Encrypted message bubbles with live read receipts and voice notes.
+                    </p>
                   </div>
 
-                  {/* Device Framing & Interactive Controls */}
-                  <div className="flex items-center gap-2 self-start sm:self-auto bg-[#0b141a] p-1 rounded-xl border border-white/10">
+                  {/* Device Framing Toggle */}
+                  <div className="flex items-center gap-1.5 self-start sm:self-auto bg-[#0b141a] p-1 rounded-xl border border-white/10">
                     <button
                       onClick={() => setDeviceFrame("desktop")}
                       className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1.5 ${
@@ -414,7 +404,7 @@ export default function LandingPage() {
                       title="Desktop view mode"
                     >
                       <Laptop size={13} />
-                      <span className="hidden sm:inline">Desktop</span>
+                      <span className="hidden sm:inline">Desktop Frame</span>
                     </button>
                     <button
                       onClick={() => setDeviceFrame("mobile")}
@@ -424,7 +414,7 @@ export default function LandingPage() {
                       title="Mobile view mode"
                     >
                       <Smartphone size={13} />
-                      <span className="hidden sm:inline">Mobile</span>
+                      <span className="hidden sm:inline">Mobile Frame</span>
                     </button>
                   </div>
                 </div>
@@ -473,7 +463,7 @@ export default function LandingPage() {
 
                   {/* Calling Overlay Banner (If Active) */}
                   {simulatedCallActive && (
-                    <div className="bg-[#00a884]/15 border-b border-[#00a884]/30 px-4 py-2 flex items-center justify-between animate-fade-in">
+                    <div className="bg-[#00a884]/15 border-b border-[#00a884]/30 px-4 py-2 flex items-center justify-between">
                       <div className="flex items-center gap-2 text-xs text-[#00a884]">
                         <PhoneCall size={14} className="animate-bounce" />
                         <span className="font-semibold">WebRTC Call Active: 00:24</span>
@@ -490,7 +480,7 @@ export default function LandingPage() {
 
                   {/* Message Stream */}
                   <div 
-                    className="p-4 space-y-3 min-h-[240px] max-h-[300px] overflow-y-auto"
+                    className="p-4 space-y-3 min-h-[220px] max-h-[280px] overflow-y-auto"
                     style={{
                       backgroundImage: "radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px)",
                       backgroundSize: "16px 16px"
@@ -618,187 +608,183 @@ export default function LandingPage() {
             </div>
 
             {/* ---------------------------------------------------- */}
-            {/* BENTO CARD 2: HOW AUTHENTICATION WORKS (Passwordless OTP) */}
-            {/* Span: 12 on mobile/tablet, 4 on desktop */}
+            {/* ROW 1 - TILE 2: BIG TYPE STAT TILE (<24ms Latency) */}
+            {/* Span: 4 cols on desktop, 6 on tablet, 12 on mobile */}
             {/* ---------------------------------------------------- */}
-            <div className="lg:col-span-4 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#00a884]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-60 h-60 bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.1),_transparent_70%)] pointer-events-none" />
+            <div className="lg:col-span-4 p-6 sm:p-7 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#00a884]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
+              <div className="absolute -bottom-8 -right-8 w-44 h-44 bg-[radial-gradient(circle,_rgba(0,168,132,0.15),_transparent_70%)] pointer-events-none" />
 
               <div>
-                <div className="w-10 h-10 rounded-xl bg-[#06b6d4]/15 border border-[#06b6d4]/30 text-[#06b6d4] flex items-center justify-center mb-4">
-                  <Key size={20} />
+                <div className="text-[11px] font-mono text-[#00a884] uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#00a884] animate-ping" />
+                  <span>Socket.IO Latency</span>
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-white mb-1">
-                  How Authentication Works
-                </h3>
-                <p className="text-xs text-[#8696a0] leading-relaxed mb-4">
-                  Zero passwords to leak. Authenticate in seconds with instant cryptographic One-Time Passwords.
+
+                {/* Big Display Number (Stageshow Rule: 48 to 72px) */}
+                <div className="text-5xl sm:text-6xl font-black text-white tracking-tighter my-3 font-mono">
+                  &lt;24<span className="text-2xl sm:text-3xl font-bold text-[#00a884] ml-1">ms</span>
+                </div>
+
+                {/* Run-in Copy */}
+                <p className="text-xs sm:text-sm text-[#8696a0] leading-relaxed mt-4">
+                  <strong className="text-[#e9edef] font-semibold">Instant socket delivery.</strong> Direct bi-directional WebSocket connections dispatch messages and receipts with sub-perceptual lag.
+                </p>
+              </div>
+
+              <div className="mt-6 pt-3 border-t border-white/[0.06] text-[11px] text-[#8696a0] flex items-center justify-between">
+                <span>Persistent Connection</span>
+                <span className="font-mono text-[#00a884]">Live Stream Ready</span>
+              </div>
+            </div>
+
+            {/* ---------------------------------------------------- */}
+            {/* ROW 2 - TILE 3: COMPONENT TILE (Passwordless OTP Stepper) */}
+            {/* Span: 4 cols on desktop, 6 on tablet, 12 on mobile */}
+            {/* ---------------------------------------------------- */}
+            <div className="lg:col-span-4 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#06b6d4]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-bold text-white tracking-tight">
+                    Passwordless Sign-In
+                  </h3>
+                  <span className="w-2 h-2 rounded-full bg-[#06b6d4] animate-pulse" />
+                </div>
+                <p className="text-xs text-[#8696a0] mb-4">
+                  <strong className="text-[#e9edef] font-semibold">Zero passwords to leak.</strong> Verify instantly with one-time cryptographic tokens.
                 </p>
 
-                {/* Interactive Step-by-Step Flow */}
-                <div className="space-y-2.5">
+                {/* Interactive Stepper */}
+                <div className="space-y-2">
                   {[
-                    {
-                      step: 1,
-                      title: "1. Enter Registered Email",
-                      desc: "alex.rivera@echochat.app",
-                      detail: "No password required.",
-                    },
-                    {
-                      step: 2,
-                      title: "2. SMTPS Port 465 Dispatch",
-                      desc: "Vercel Edge Proxy dispatches OTP",
-                      detail: "Secured via Gmail TLS 1.3.",
-                    },
-                    {
-                      step: 3,
-                      title: "3. 6-Digit Verification Code",
-                      desc: "[ 7 ] [ 2 ] [ 9 ] [ 4 ] [ 0 ] [ 1 ]",
-                      detail: "Valid for 5 mins (MongoDB TTL).",
-                    },
-                    {
-                      step: 4,
-                      title: "4. Local Keypair Generation",
-                      desc: "Curve25519 Private Key in IndexedDB",
-                      detail: "Never transmitted to server.",
-                    },
+                    { step: 1, title: "1. Enter Email", val: "alex.rivera@echochat.app" },
+                    { step: 2, title: "2. SMTPS Port 465", val: "Dispatched via Vercel Edge" },
+                    { step: 3, title: "3. 6-Digit OTP", val: "[ 7 ] [ 2 ] [ 9 ] [ 4 ] [ 0 ] [ 1 ]" },
+                    { step: 4, title: "4. Keypair Gen", val: "Curve25519 in IndexedDB" },
                   ].map((s) => (
                     <div 
                       key={s.step}
                       onClick={() => { setAuthStep(s.step as any); setIsAuthAutoPlaying(false); }}
-                      className={`p-2.5 rounded-xl border transition-all cursor-pointer text-left ${
+                      className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
                         authStep === s.step 
                           ? "bg-[#202c33] border-[#06b6d4]/50 shadow-md ring-1 ring-[#06b6d4]/20" 
                           : "bg-[#0b141a]/60 border-white/[0.05] hover:border-white/15"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className={`text-xs font-semibold ${authStep === s.step ? "text-[#06b6d4]" : "text-white"}`}>
+                      <div className="flex items-center justify-between text-xs font-semibold">
+                        <span className={authStep === s.step ? "text-[#06b6d4]" : "text-white"}>
                           {s.title}
                         </span>
-                        {authStep === s.step && (
-                          <span className="w-2 h-2 rounded-full bg-[#06b6d4] animate-ping" />
-                        )}
+                        {authStep === s.step && <span className="text-[10px] text-[#06b6d4] font-mono">Active</span>}
                       </div>
-                      <div className="text-[11px] font-mono text-white/90 mt-0.5">{s.desc}</div>
-                      <div className="text-[10px] text-[#8696a0] mt-0.5">{s.detail}</div>
+                      <div className="text-[11px] font-mono text-white/90 mt-0.5">{s.val}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Action trigger */}
-              <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between">
-                <span className="text-[11px] text-[#8696a0] font-mono">
-                  Step {authStep} of 4 Active
-                </span>
+              <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-[#8696a0]">
+                <span>5-Minute MongoDB TTL</span>
                 <button 
                   onClick={() => setIsAuthAutoPlaying(!isAuthAutoPlaying)}
                   className="text-xs text-[#06b6d4] hover:underline font-medium"
                 >
-                  {isAuthAutoPlaying ? "Pause Auto-Demo" : "Play Auto-Demo"}
+                  {isAuthAutoPlaying ? "Pause Demo" : "Resume Demo"}
                 </button>
               </div>
             </div>
 
             {/* ---------------------------------------------------- */}
-            {/* BENTO CARD 3: HOW MESSAGE WORKFLOW WORKS (E2EE Pipeline) */}
-            {/* Span: 12 on mobile/tablet, 7 on desktop */}
+            {/* ROW 2 - TILE 4: DIAGRAM TILE (E2EE Message Pipeline) */}
+            {/* Span: 5 cols on desktop, 6 on tablet, 12 on mobile */}
             {/* ---------------------------------------------------- */}
-            <div className="lg:col-span-7 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#00a884]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.1),_transparent_70%)] pointer-events-none" />
-
+            <div className="lg:col-span-5 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#10b981]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
               <div>
-                <div className="w-10 h-10 rounded-xl bg-[#10b981]/15 border border-[#10b981]/30 text-[#10b981] flex items-center justify-center mb-4">
-                  <Lock size={20} />
-                </div>
-                <h3 className="text-base sm:text-lg font-bold text-white mb-1">
-                  How Message Workflow Works: End-to-End Cryptography
+                <h3 className="text-base font-bold text-white tracking-tight mb-1">
+                  E2EE Cryptographic Pipeline
                 </h3>
-                <p className="text-xs text-[#8696a0] leading-relaxed mb-5">
-                  Trace the exact journey of a message from your keystroke to recipient delivery with verifiable zero-knowledge privacy.
+                <p className="text-xs text-[#8696a0] mb-4">
+                  <strong className="text-[#e9edef] font-semibold">Zero-knowledge flow.</strong> Messages are encrypted on-device before hitting the network.
                 </p>
 
-                {/* Pipeline Flow Visualization */}
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-center">
-                  
-                  {/* Step A */}
-                  <div className="p-3 rounded-xl bg-[#0b141a]/90 border border-white/[0.07] flex flex-col items-center">
-                    <span className="w-5 h-5 rounded-full bg-[#202c33] text-[10px] font-bold text-white flex items-center justify-center mb-1.5">
-                      1
-                    </span>
-                    <span className="text-xs font-semibold text-white">Client Input</span>
-                    <span className="text-[10px] text-[#8696a0] mt-1">Plaintext message typed in browser</span>
-                    <span className="mt-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-white/70">
-                      "Hello!"
-                    </span>
+                {/* 4-Node Pipeline Diagram */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="p-3 rounded-xl bg-[#0b141a] border border-white/[0.07]">
+                    <span className="text-[10px] font-mono text-white/60">01 / INPUT</span>
+                    <div className="text-xs font-semibold text-white mt-1">Plaintext Keystroke</div>
+                    <div className="text-[10px] text-[#8696a0] mt-1">Typed in local DOM</div>
                   </div>
 
-                  {/* Step B */}
-                  <div className="p-3 rounded-xl bg-[#0b141a]/90 border border-[#10b981]/30 flex flex-col items-center shadow-sm">
-                    <span className="w-5 h-5 rounded-full bg-[#10b981]/20 text-[10px] font-bold text-[#10b981] flex items-center justify-center mb-1.5">
-                      2
-                    </span>
-                    <span className="text-xs font-semibold text-[#10b981]">AES-256-GCM</span>
-                    <span className="text-[10px] text-[#8696a0] mt-1">Encrypted on device via WebCrypto</span>
-                    <span className="mt-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#10b981]/15 text-[#10b981]">
-                      d4e9a18...
-                    </span>
+                  <div className="p-3 rounded-xl bg-[#0b141a] border border-[#10b981]/30 shadow-sm">
+                    <span className="text-[10px] font-mono text-[#10b981]">02 / CIPHER</span>
+                    <div className="text-xs font-semibold text-[#10b981] mt-1">AES-256-GCM</div>
+                    <div className="text-[10px] text-[#8696a0] mt-1">Encrypted on device</div>
                   </div>
 
-                  {/* Step C */}
-                  <div className="p-3 rounded-xl bg-[#0b141a]/90 border border-white/[0.07] flex flex-col items-center">
-                    <span className="w-5 h-5 rounded-full bg-[#202c33] text-[10px] font-bold text-white flex items-center justify-center mb-1.5">
-                      3
-                    </span>
-                    <span className="text-xs font-semibold text-white">WebSocket Transit</span>
-                    <span className="text-[10px] text-[#8696a0] mt-1">Socket.IO relay &lt;24ms latency</span>
-                    <span className="mt-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-white/70">
-                      TLS 1.3 Relay
-                    </span>
+                  <div className="p-3 rounded-xl bg-[#0b141a] border border-white/[0.07]">
+                    <span className="text-[10px] font-mono text-white/60">03 / TRANSIT</span>
+                    <div className="text-xs font-semibold text-white mt-1">Socket.IO Relay</div>
+                    <div className="text-[10px] text-[#8696a0] mt-1">Sub-24ms dispatch</div>
                   </div>
 
-                  {/* Step D */}
-                  <div className="p-3 rounded-xl bg-[#0b141a]/90 border border-[#06b6d4]/30 flex flex-col items-center shadow-sm">
-                    <span className="w-5 h-5 rounded-full bg-[#06b6d4]/20 text-[10px] font-bold text-[#06b6d4] flex items-center justify-center mb-1.5">
-                      4
-                    </span>
-                    <span className="text-xs font-semibold text-[#06b6d4]">Decryption & Ticks</span>
-                    <span className="text-[10px] text-[#8696a0] mt-1">Recipient private key decrypts</span>
-                    <span className="mt-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#06b6d4]/15 text-[#06b6d4] flex items-center gap-1">
-                      <CheckCheck size={12} /> Double Tick
-                    </span>
+                  <div className="p-3 rounded-xl bg-[#0b141a] border border-[#06b6d4]/30 shadow-sm">
+                    <span className="text-[10px] font-mono text-[#06b6d4]">04 / RECEIPT</span>
+                    <div className="text-xs font-semibold text-[#06b6d4] mt-1">Double Blue Tick</div>
+                    <div className="text-[10px] text-[#8696a0] mt-1">Decrypted by peer</div>
                   </div>
-
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-[#8696a0]">
-                <span className="font-mono text-[11px] text-[#10b981]">WebCrypto API Native • Curve25519 ECDH</span>
-                <span className="text-[11px] text-[#8696a0]">Zero server plain-text retention</span>
+              <div className="mt-4 pt-3 border-t border-white/[0.06] text-[11px] text-[#8696a0] flex items-center justify-between">
+                <span>Curve25519 (ECDH) Key Exchange</span>
+                <span className="font-mono text-[#10b981]">Native WebCrypto</span>
               </div>
             </div>
 
             {/* ---------------------------------------------------- */}
-            {/* BENTO CARD 4: 24-HOUR EPHEMERAL STATUS STORIES */}
-            {/* Span: 12 on mobile/tablet, 5 on desktop */}
+            {/* ROW 2 - TILE 5: BIG TYPE STAT TILE (Zero Plaintext Leaks) */}
+            {/* Span: 3 cols on desktop, 6 on tablet, 12 on mobile */}
             {/* ---------------------------------------------------- */}
-            <div className="lg:col-span-5 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#00a884]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-60 h-60 bg-[radial-gradient(ellipse_at_top_right,_rgba(245,158,11,0.1),_transparent_70%)] pointer-events-none" />
-
+            <div className="lg:col-span-3 p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#10b981]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
               <div>
-                <div className="w-10 h-10 rounded-xl bg-[#f59e0b]/15 border border-[#f59e0b]/30 text-[#f59e0b] flex items-center justify-center mb-4">
-                  <Clock size={20} />
+                <div className="text-[11px] font-mono text-[#10b981] uppercase tracking-wider mb-2">
+                  Server Telemetry
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-white mb-1">
-                  24-Hour Ephemeral Status
-                </h3>
-                <p className="text-xs text-[#8696a0] leading-relaxed mb-4">
-                  Post temporary photo, video, or text updates that automatically self-destruct after 24 hours.
+
+                <div className="text-5xl sm:text-6xl font-black text-white tracking-tighter my-2 font-mono">
+                  0<span className="text-2xl font-bold text-[#10b981] ml-1">%</span>
+                </div>
+
+                <p className="text-xs text-[#8696a0] leading-relaxed mt-3">
+                  <strong className="text-[#e9edef] font-semibold">Zero plaintext leaks.</strong> No third-party ad brokers, trackers, or plain database storage.
+                </p>
+              </div>
+
+              <div className="mt-5 pt-3 border-t border-white/[0.06] text-[11px] text-[#8696a0] flex items-center justify-between">
+                <span>GDPR & Privacy First</span>
+                <span className="font-mono text-[#10b981]">Client Keys</span>
+              </div>
+            </div>
+
+            {/* ---------------------------------------------------- */}
+            {/* ROW 3 - TILE 6: COMPONENT TILE (24h Ephemeral Stories) */}
+            {/* Span: 4 cols on desktop, 6 on tablet, 12 on mobile */}
+            {/* ---------------------------------------------------- */}
+            <div className="lg:col-span-4 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#f59e0b]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-base font-bold text-white tracking-tight">
+                    24h Ephemeral Status
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-[#f59e0b]">
+                    TTL Purge
+                  </span>
+                </div>
+                <p className="text-xs text-[#8696a0] mb-4">
+                  <strong className="text-[#e9edef] font-semibold">Disappearing stories.</strong> Photos, video, and text self-destruct after 24 hours.
                 </p>
 
                 {/* Status Story Card Preview */}
-                <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#0d6b50] to-[#0b4837] border border-white/15 text-white shadow-lg relative overflow-hidden">
+                <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#0d6b50] to-[#0b4837] border border-white/15 text-white shadow-lg">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-white/20 p-0.5 ring-2 ring-[#00a884]">
@@ -811,13 +797,11 @@ export default function LandingPage() {
                         <span className="text-[9px] text-white/70">Today, 2:40 PM</span>
                       </div>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-sm text-[10px] font-mono text-[#53bdeb] flex items-center gap-1">
-                      <Clock size={10} /> 18h remaining
-                    </span>
+                    <span className="text-[10px] font-mono text-[#53bdeb]">18h remaining</span>
                   </div>
 
-                  <p className="text-xs font-medium py-2 leading-relaxed">
-                    "Shipped EchoChat v2 with sub-24ms WebSockets & WebRTC calling! Check it live on Vercel 🚀"
+                  <p className="text-xs font-medium py-1.5 leading-relaxed">
+                    "Shipped EchoChat v2 with WebRTC HD Calling & E2EE 🚀"
                   </p>
 
                   <div className="flex items-center justify-between pt-2 border-t border-white/10 text-[10px] text-white/70">
@@ -825,145 +809,123 @@ export default function LandingPage() {
                       <Eye size={12} className="text-[#00a884]" />
                       <span>28 Contacts Viewed</span>
                     </span>
-                    <span className="font-mono text-[#53bdeb]">MongoDB TTL Index</span>
+                    <span className="font-mono text-[#53bdeb]">MongoDB TTL</span>
                   </div>
                 </div>
               </div>
 
               <div className="mt-4 pt-3 border-t border-white/[0.06] text-[11px] text-[#8696a0] flex items-center justify-between">
-                <span>Auto-Purge After 24h</span>
-                <span className="font-mono text-[#f59e0b]">Zero Waste Archiving</span>
+                <span>Zero Server Persistence</span>
+                <span className="font-mono text-[#f59e0b]">Auto-Expiry</span>
               </div>
             </div>
 
             {/* ---------------------------------------------------- */}
-            {/* BENTO CARD 5: WEBRTC HD VOICE & VIDEO CALLING */}
-            {/* Span: 12 on mobile/tablet, 6 on desktop */}
+            {/* ROW 3 - TILE 7: COMPONENT TILE (WebRTC HD Calling) */}
+            {/* Span: 4 cols on desktop, 6 on tablet, 12 on mobile */}
             {/* ---------------------------------------------------- */}
-            <div className="lg:col-span-6 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#00a884]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-60 h-60 bg-[radial-gradient(ellipse_at_top_right,_rgba(59,130,246,0.1),_transparent_70%)] pointer-events-none" />
-
+            <div className="lg:col-span-4 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#3b82f6]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
               <div>
-                <div className="w-10 h-10 rounded-xl bg-[#3b82f6]/15 border border-[#3b82f6]/30 text-[#3b82f6] flex items-center justify-center mb-4">
-                  <PhoneCall size={20} />
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-base font-bold text-white tracking-tight">
+                    P2P WebRTC HD Calling
+                  </h3>
+                  <span className="w-2 h-2 rounded-full bg-[#3b82f6] animate-pulse" />
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-white mb-1">
-                  P2P WebRTC HD Voice & Video
-                </h3>
-                <p className="text-xs text-[#8696a0] leading-relaxed mb-4">
-                  Direct peer-to-peer audio and video calls powered by Simple-Peer WebRTC. No intermediate recording servers.
+                <p className="text-xs text-[#8696a0] mb-4">
+                  <strong className="text-[#e9edef] font-semibold">Direct peer streams.</strong> Encrypted audio and video without recording relays.
                 </p>
 
                 {/* Call Simulation Widget */}
-                <div className="p-4 rounded-2xl bg-[#0b141a] border border-white/[0.08] flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#3b82f6] to-[#00a884] flex items-center justify-center text-white font-bold text-sm shadow-md">
-                        MK
-                      </div>
-                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#00a884] ring-2 ring-[#0b141a]" />
+                <div className="p-3.5 rounded-2xl bg-[#0b141a] border border-white/[0.08] flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3b82f6] to-[#00a884] flex items-center justify-center text-white font-bold text-xs shadow-md">
+                      MK
                     </div>
                     <div>
                       <span className="text-xs font-bold text-white block">Marcus King</span>
-                      <span className="text-[11px] text-[#00a884] font-medium flex items-center gap-1">
+                      <span className="text-[10px] text-[#00a884] font-medium flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-ping" />
-                        03:48 • Opus 48kHz Stereo
+                        03:48 • 48kHz Opus
                       </span>
                     </div>
                   </div>
 
-                  {/* Active Call Controls */}
-                  <div className="flex items-center gap-2">
-                    <span className="w-8 h-8 rounded-full bg-[#202c33] text-white flex items-center justify-center hover:bg-[#2a3942] transition cursor-pointer">
-                      <Mic size={14} />
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-7 h-7 rounded-full bg-[#202c33] text-white flex items-center justify-center cursor-pointer">
+                      <Mic size={12} />
                     </span>
-                    <span className="w-8 h-8 rounded-full bg-[#202c33] text-white flex items-center justify-center hover:bg-[#2a3942] transition cursor-pointer">
-                      <Video size={14} />
-                    </span>
-                    <span className="w-8 h-8 rounded-full bg-red-500/80 text-white flex items-center justify-center hover:bg-red-500 transition cursor-pointer">
-                      <Phone size={14} className="rotate-[135deg]" />
+                    <span className="w-7 h-7 rounded-full bg-red-500/80 text-white flex items-center justify-center cursor-pointer">
+                      <Phone size={12} className="rotate-[135deg]" />
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className="mt-4 pt-3 border-t border-white/[0.06] text-[11px] text-[#8696a0] flex items-center justify-between">
-                <span>Simple-Peer WebRTC Architecture</span>
-                <span className="font-mono text-[#3b82f6]">Zero Server Relay Media</span>
+                <span>Simple-Peer WebRTC</span>
+                <span className="font-mono text-[#3b82f6]">Zero-Hop Audio</span>
               </div>
             </div>
 
             {/* ---------------------------------------------------- */}
-            {/* BENTO CARD 6: RICH MULTIMODAL SHARING */}
-            {/* Span: 12 on mobile/tablet, 6 on desktop */}
+            {/* ROW 3 - TILE 8: COLLECTION TILE (Rich Multimodal Hub) */}
+            {/* Span: 4 cols on desktop, 12 on tablet/mobile */}
             {/* ---------------------------------------------------- */}
-            <div className="lg:col-span-6 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#00a884]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-60 h-60 bg-[radial-gradient(ellipse_at_top_right,_rgba(168,85,247,0.1),_transparent_70%)] pointer-events-none" />
-
+            <div className="lg:col-span-4 p-5 sm:p-6 rounded-3xl bg-[#111b21]/90 border border-white/[0.08] hover:border-[#a855f7]/40 transition-all duration-200 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
               <div>
-                <div className="w-10 h-10 rounded-xl bg-[#a855f7]/15 border border-[#a855f7]/30 text-[#a855f7] flex items-center justify-center mb-4">
-                  <FileText size={20} />
-                </div>
-                <h3 className="text-base sm:text-lg font-bold text-white mb-1">
-                  Rich Multimodal Messaging
+                <h3 className="text-base font-bold text-white tracking-tight mb-1">
+                  Rich Multimodal Sharing
                 </h3>
-                <p className="text-xs text-[#8696a0] leading-relaxed mb-4">
-                  Exchange voice recordings, high-resolution media, documents, and live location with authorized token security.
+                <p className="text-xs text-[#8696a0] mb-4">
+                  <strong className="text-[#e9edef] font-semibold">Any format.</strong> Voice, high-definition media, files, and live Google Maps pins.
                 </p>
 
-                {/* Multimodal Badges Grid */}
-                <div className="grid grid-cols-2 gap-2.5">
-                  <div className="p-3 rounded-xl bg-[#0b141a] border border-white/[0.06] flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-[#a855f7]/20 text-[#a855f7] flex items-center justify-center">
-                      <Volume2 size={16} />
-                    </div>
+                {/* 4 Media Badges */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2.5 rounded-xl bg-[#0b141a] border border-white/[0.06] flex items-center gap-2">
+                    <Volume2 size={15} className="text-[#a855f7] flex-shrink-0" />
                     <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-white">Voice Notes</span>
-                      <span className="text-[10px] text-[#8696a0]">Sub-1ms recorder</span>
+                      <span className="text-[11px] font-semibold text-white">Voice Note</span>
+                      <span className="text-[9px] text-[#8696a0]">Sub-1ms</span>
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#0b141a] border border-white/[0.06] flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-[#00a884]/20 text-[#00a884] flex items-center justify-center">
-                      <Camera size={16} />
-                    </div>
+                  <div className="p-2.5 rounded-xl bg-[#0b141a] border border-white/[0.06] flex items-center gap-2">
+                    <Camera size={15} className="text-[#00a884] flex-shrink-0" />
                     <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-white">HD Media</span>
-                      <span className="text-[10px] text-[#8696a0]">Instant preview</span>
+                      <span className="text-[11px] font-semibold text-white">HD Media</span>
+                      <span className="text-[9px] text-[#8696a0]">Instant view</span>
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#0b141a] border border-white/[0.06] flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-[#06b6d4]/20 text-[#06b6d4] flex items-center justify-center">
-                      <FileText size={16} />
-                    </div>
+                  <div className="p-2.5 rounded-xl bg-[#0b141a] border border-white/[0.06] flex items-center gap-2">
+                    <FileText size={15} className="text-[#06b6d4] flex-shrink-0" />
                     <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-white">Documents</span>
-                      <span className="text-[10px] text-[#8696a0]">PDF, Code, Archives</span>
+                      <span className="text-[11px] font-semibold text-white">Documents</span>
+                      <span className="text-[9px] text-[#8696a0]">PDF, Code</span>
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#0b141a] border border-white/[0.06] flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-[#ef4444]/20 text-[#ef4444] flex items-center justify-center">
-                      <MapPin size={16} />
-                    </div>
+                  <div className="p-2.5 rounded-xl bg-[#0b141a] border border-white/[0.06] flex items-center gap-2">
+                    <MapPin size={15} className="text-[#ef4444] flex-shrink-0" />
                     <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-white">Live Location</span>
-                      <span className="text-[10px] text-[#8696a0]">Google Maps pin</span>
+                      <span className="text-[11px] font-semibold text-white">Live GPS</span>
+                      <span className="text-[9px] text-[#8696a0]">Maps pin</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="mt-4 pt-3 border-t border-white/[0.06] text-[11px] text-[#8696a0] flex items-center justify-between">
-                <span>Secure Media Token Authorization</span>
-                <span className="font-mono text-[#a855f7]">RBAC Access Control</span>
+                <span>Bearer Token Protection</span>
+                <span className="font-mono text-[#a855f7]">RBAC Media</span>
               </div>
             </div>
 
             {/* ---------------------------------------------------- */}
-            {/* BENTO CARD 7: GROUP CHANNELS & ROLE-BASED ACCESS */}
-            {/* Span: 12 (Full width on all viewports) */}
+            {/* ROW 4 - TILE 9: STATEMENT / ACTION BAR (Groups & Teams) */}
+            {/* Span: 12 (Full Width) */}
             {/* ---------------------------------------------------- */}
             <div className="lg:col-span-12 p-5 sm:p-7 rounded-3xl bg-gradient-to-r from-[#111b21] via-[#16222b] to-[#111b21] border border-white/[0.08] hover:border-[#00a884]/40 transition-all duration-200 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
               <div className="flex items-center gap-4">
@@ -978,7 +940,7 @@ export default function LandingPage() {
                     </span>
                   </h3>
                   <p className="text-xs text-[#8696a0] mt-1 max-w-2xl leading-relaxed">
-                    Collaborate with unlimited members. Create announcement channels, assign administrators, broadcast encrypted updates, and monitor delivery status across entire teams.
+                    <strong className="text-[#e9edef] font-semibold">Collaborate without limits.</strong> Create announcement channels, assign administrators, broadcast encrypted updates, and monitor delivery status across entire teams.
                   </p>
                 </div>
               </div>
